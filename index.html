@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#0f172a">
+    <title>DopaLearn V.Ultimate - Đột Phá Cảnh Giới</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+
+    <style>
+        :root {
+            --bg-dark: #0f172a; --card-bg: #1e293b; --neon-blue: #38bdf8;
+            --neon-purple: #c084fc; --gold: #fbbf24; --danger: #ef4444;
+            --success: #10b981; --text-main: #f8fafc; --text-muted: #94a3b8;
+            --vip-color: #f59e0b;
+        }
+
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: var(--bg-dark); color: var(--text-main); margin: 0; display: flex; justify-content: center; padding: 20px 0; overflow-x: hidden;}
+        .container { width: 95%; max-width: 650px; }
+        
+        h1, h2, h3 { margin-top: 0; text-align: center; }
+        h1 { font-size: 2.2rem; background: linear-gradient(to right, var(--neon-blue), var(--neon-purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 0 15px rgba(192, 132, 252, 0.4); margin-bottom: 25px; }
+
+        .card { background: var(--card-bg); border-radius: 20px; padding: 20px; margin-bottom: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.05); position: relative; }
+
+        /* --- NÚT BẤM --- */
+        .btn { background: linear-gradient(135deg, #6366f1, #a855f7); color: white; border: none; padding: 12px 20px; font-size: 1.1rem; border-radius: 12px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.2s; margin-top: 5px;}
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(168, 85, 247, 0.5); }
+        .btn-small { width: auto; font-size: 0.9rem; padding: 8px 15px; margin-top: 0;}
+        .btn-success { background: var(--success); }
+        .btn-danger { background: var(--danger); }
+        .btn-outline { background: transparent; border: 2px solid var(--neon-blue); color: var(--neon-blue); }
+        .btn-vip { background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4); color: #000;}
+        .btn-ai { background: linear-gradient(90deg, #10b981, #3b82f6); box-shadow: 0 0 10px rgba(16, 185, 129, 0.5); animation: pulseAI 2s infinite; }
+        @keyframes pulseAI { 0%, 100% { box-shadow: 0 0 10px rgba(16, 185, 129, 0.4); } 50% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.8); } }
+
+        /* --- CÂY KỸ NĂNG & PROFILE --- */
+        .profile-card { border-top: 4px solid var(--neon-blue); }
+        .charts-wrapper { display: flex; flex-direction: column; gap: 15px; align-items: center; margin-bottom: 15px; }
+        .chart-container { width: 100%; max-width: 300px; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 20px; }
+        
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; text-align: center; margin-top: 15px; }
+        .stat-box { background: rgba(0,0,0,0.3); padding: 10px; border-radius: 10px; }
+        .stat-value { font-size: 1.4rem; font-weight: bold; color: var(--gold); }
+        .stat-label { font-size: 0.75rem; color: var(--text-muted); }
+        .backup-controls { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; justify-content: center; }
+
+        /* Rank & Badges */
+        .rank-title { font-size: 1.5rem; color: var(--gold); text-align: center; margin-bottom: 5px; font-weight: bold; text-transform: uppercase; text-shadow: 0 0 10px rgba(251, 191, 36, 0.5);}
+        .badges-container { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-bottom: 15px; }
+        .badge { background: linear-gradient(45deg, #ff007f, #7928ca); padding: 5px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.5);}
+
+        /* Quản lý kỹ năng */
+        .skill-list-item { display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); padding: 5px 10px; border-radius: 8px; margin-bottom: 5px; font-size: 0.9rem;}
+        .skill-progress-bar { height: 6px; background: rgba(0,0,0,0.5); border-radius: 3px; margin-top: 3px; overflow: hidden; }
+        .skill-progress-fill { height: 100%; background: var(--neon-blue); }
+
+        /* --- BANK --- */
+        .bank-card { border: 1px dashed var(--gold); background: linear-gradient(180deg, rgba(30, 41, 59, 1) 0%, rgba(69, 26, 3, 0.3) 100%); }
+        .credit-score { font-size: 2rem; font-weight: bold; }
+        .credit-good { color: var(--success); } .credit-warn { color: var(--gold); } .credit-bad { color: var(--danger); }
+        .debt-alert { background: rgba(239, 68, 68, 0.2); padding: 10px; border-radius: 10px; border-left: 4px solid var(--danger); margin-top: 10px; font-size: 0.9rem; display: none; }
+
+        /* --- BOSS --- */
+        .boss-card { display: none; border: 2px solid var(--danger); background: linear-gradient(180deg, rgba(30, 41, 59, 1) 0%, rgba(153, 27, 27, 0.4) 100%); animation: bossShake 3s infinite; }
+        @keyframes bossShake { 0%, 100% { transform: translateX(0); } 10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); } 20%, 40%, 60%, 80% { transform: translateX(2px); } }
+        .boss-hp { background: #000; height: 20px; border-radius: 10px; margin: 15px 0; border: 2px solid #333; overflow: hidden; position: relative;}
+        .boss-hp-fill { background: var(--danger); height: 100%; width: 100%; transition: width 1s; }
+        .boss-hp-text { position: absolute; width: 100%; text-align: center; top: 0; font-size: 0.8rem; font-weight: bold; line-height: 20px; color: white;}
+
+        /* --- POMODORO --- */
+        .clock-display { font-size: 4rem; font-weight: bold; color: var(--success); font-family: monospace; text-shadow: 0 0 20px rgba(16, 185, 129, 0.4); margin: 20px 0; text-align: center;}
+        .input-time { width: 80px; padding: 10px; font-size: 1.2rem; text-align: center; border-radius: 10px; background: rgba(0,0,0,0.5); color: white; border: 1px solid var(--success); }
+        .tag-select { background: #0f172a; color: var(--neon-blue); padding: 10px; border-radius: 10px; border: 1px solid var(--neon-blue); outline: none; font-size: 1rem; margin-left: 10px;}
+
+        /* --- AI & QUESTS --- */
+        .quest-item { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--gold); margin-bottom: 8px;}
+        .quest-item.done { opacity: 0.5; border-left-color: var(--success); text-decoration: line-through; }
+        .ai-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; }
+        .ai-modal-content { background: var(--card-bg); padding: 25px; border-radius: 20px; width: 90%; max-width: 500px; border: 2px solid var(--neon-blue); box-shadow: 0 0 30px rgba(56, 189, 248, 0.4); }
+        .ai-input { width: 100%; background: rgba(0,0,0,0.5); border: 1px solid var(--text-muted); color: white; padding: 10px; border-radius: 10px; margin-top: 10px; margin-bottom: 15px; font-family: inherit; font-size: 1rem; box-sizing: border-box; }
+        .ai-textarea { resize: vertical; min-height: 80px; }
+
+        /* --- GACHA BANNER --- */
+        .reward-screen { background: #000; min-height: 100px; display: flex; justify-content: center; align-items: center; margin: 20px 0; border: 2px solid #333; font-size: 1.2rem; font-weight: bold; color: var(--gold); border-radius: 10px; padding: 10px; text-align: center; }
+        .pity-bar-bg { background: rgba(0,0,0,0.5); height: 10px; border-radius: 5px; margin: 10px 0; overflow: hidden; }
+        .pity-bar-fill { height: 100%; background: var(--gold); width: 0%; transition: 0.3s; }
+        .slot-machine-text { animation: blurText 0.1s infinite alternate; color: #fff; filter: blur(2px); transform: scale(0.95); opacity: 0.8; }
+        @keyframes blurText { 0% { filter: blur(0px); transform: translateY(-2px); } 100% { filter: blur(2px); transform: translateY(2px); } }
+        .win-glow { animation: winPulse 1s infinite alternate; color: var(--gold) !important; text-shadow: 0 0 20px var(--gold) !important; border-color: var(--gold) !important;}
+        @keyframes winPulse { from { box-shadow: inset 0 0 20px rgba(251, 191, 36, 0.2); } to { box-shadow: inset 0 0 60px rgba(251, 191, 36, 0.6); } }
+
+        /* Settings Table */
+        .setting-row { display: flex; gap: 5px; margin-bottom: 5px; align-items: center;}
+        .setting-input { background: rgba(0,0,0,0.3); border: 1px solid #444; color: white; padding: 5px; border-radius: 5px; }
+
+        /* --- INVENTORY --- */
+        .inventory-list { max-height: 200px; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 10px; padding: 10px; }
+        .inv-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px dashed rgba(255,255,255,0.1); }
+        .inv-badge { background: var(--neon-purple); padding: 2px 8px; border-radius: 10px; font-weight: bold; font-size: 0.9rem;}
+        
+        .confetti { position: fixed; top: -10px; width: 8px; height: 8px; z-index: 9999; animation: fall linear forwards; }
+        @keyframes fall { to { transform: translateY(110vh) rotate(720deg); } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>DopaLearn V.Ultimate</h1>
+
+    <div class="card profile-card" id="profile-capture-area">
+        <div class="rank-title" id="rank-display">Tân Binh</div>
+        <div class="badges-container" id="badges-container"></div>
+        
+        <div class="charts-wrapper">
+            <div class="chart-container"><canvas id="skillChart"></canvas></div>
+            <div class="chart-container"><canvas id="weeklyChart"></canvas></div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-box"><div class="stat-label">Thời Gian (Phút)</div><div class="stat-value" id="stat-time">0</div></div>
+            <div class="stat-box"><div class="stat-label">Chuỗi (Ngày)</div><div class="stat-value" id="stat-streak" style="color: var(--danger)">0🔥</div></div>
+            <div class="stat-box"><div class="stat-label">Vé VIP</div><div class="stat-value" id="stat-vip-spins" style="color: var(--vip-color)">0👑</div></div>
+        </div>
+    </div>
+    
+    <div style="display: flex; gap: 10px; justify-content: center; margin-top: -15px; margin-bottom: 20px;">
+        <button class="btn btn-small" style="background: #e11d48;" onclick="captureProfile()">📸 Chụp Profile Flex</button>
+        <button class="btn btn-small btn-outline" onclick="exportJSON()">💾 Backup</button>
+        <button class="btn btn-small btn-outline" onclick="document.getElementById('import-file').click()">📂 Import</button>
+        <input type="file" id="import-file" style="display: none;" accept=".json" onchange="importJSON(event)">
+    </div>
+
+    <div class="card">
+        <h3 style="color: var(--neon-blue);">🛠️ Quản Lý Nhánh Kỹ Năng</h3>
+        <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+            <input type="text" id="new-skill-input" class="ai-input" style="margin:0" placeholder="VD: HSK 5, Code Python...">
+            <button class="btn btn-small btn-success" style="width: auto;" onclick="addNewSkill()">Thêm</button>
+        </div>
+        <div id="dynamic-skills-list"></div>
+    </div>
+
+    <div class="card bank-card">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <span class="stat-label">ĐIỂM TÍN DỤNG DOPA</span><br>
+                <span class="credit-score" id="credit-score">600</span>
+            </div>
+            <button class="btn btn-small" style="background: var(--gold); color: black; font-weight: bold; width: auto;" onclick="borrowSpin()">VAY 1 VÉ</button>
+        </div>
+        <div id="debt-alert" class="debt-alert">⚠️ Đang nợ <b id="debt-amount">0</b> Vé. Sẽ tự động cấn trừ (45p/vé).</div>
+    </div>
+
+    <div class="card boss-card" id="boss-section">
+        <h2 style="color: var(--danger); text-transform: uppercase;" id="boss-name">👹 BOSS XUẤT HIỆN</h2>
+        <p style="font-size: 0.9rem; text-align: center; font-style: italic;" id="boss-desc">Boss đại diện cho sự lười biếng của bạn.</p>
+        <p style="font-size: 0.9rem; text-align: center;">Hoàn thành Pomodoro <b id="boss-target">120</b> phút không nghỉ để tiêu diệt.</p>
+        <div class="boss-hp"><div class="boss-hp-fill" id="boss-hp-fill"></div><div class="boss-hp-text">Sinh lực Boss</div></div>
+        <div style="text-align: center; color: var(--gold); font-size: 0.9rem;">Thưởng: 3 Vé VIP Vàng + 5 Vé Thường</div>
+    </div>
+    <button class="btn btn-small btn-outline" style="margin-top:-15px; margin-bottom: 20px; font-size: 0.7rem;" onclick="summonAIBoss()">[DEV] Gọi Boss AI</button>
+
+    <div class="card" style="border-color: var(--success);">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h2>⏱️ Trận Pháp Tập Trung</h2>
+            <button class="btn btn-small" id="btn-lofi" style="background: #8b5cf6; width:auto;" onclick="toggleLofi()">🎵 Bật Lofi</button>
+        </div>
+        
+        <div class="clock-display" id="clock-display">25:00</div>
+        
+        <div style="text-align: center; margin-bottom: 15px; display: flex; justify-content: center; align-items: center; gap: 5px; flex-wrap: wrap;">
+            Thời gian: <input type="number" id="pomo-input" class="input-time" value="25" min="1"> p
+            <select id="skill-tag" class="tag-select"></select>
+        </div>
+        
+        <div style="display: flex; gap: 10px; justify-content: center;">
+            <button class="btn btn-success" id="btn-start" onclick="startTimer()">▶ BẮT ĐẦU</button>
+            <button class="btn btn-danger" style="display:none;" id="btn-pause" onclick="pauseTimer()">⏸ DỪNG</button>
+            <button class="btn" style="background: #64748b;" onclick="resetTimer()">⏹ HỦY</button>
+        </div>
+        <div id="rate-alert" style="text-align: center; margin-top: 15px; font-size: 0.9rem; color: var(--neon-blue);"></div>
+        <audio id="lofi-audio" loop src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3"></audio>
+    </div>
+
+    <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h2 style="color: var(--gold); margin: 0;">📜 Nhiệm Vụ Ngày</h2>
+            <button class="btn btn-small btn-ai" onclick="openAIModal()">🤖 Cố Vấn AI</button>
+        </div>
+        <div id="quest-container"></div>
+    </div>
+
+    <div class="ai-modal" id="ai-modal">
+        <div class="ai-modal-content">
+            <h2 style="color: var(--neon-blue); margin-bottom: 5px;">🧠 Trạm Giao Tiếp Gemini</h2>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0;">AI sẽ đọc nhật ký học tập của sếp để ra task nối tiếp.</p>
+            
+            <label style="font-size: 0.9rem; font-weight: bold; color: var(--gold);">🔑 Gemini API Key:</label>
+            <input type="password" id="gemini-api-key" class="ai-input" placeholder="AIzaSy...">
+            
+            <label style="font-size: 0.9rem; font-weight: bold;">🎯 Mục tiêu / Vấn đề hôm nay?</label>
+            <textarea id="ai-goal" class="ai-input ai-textarea" placeholder="VD: Luyện thi IELTS Reading, hoặc giải bài Python..."></textarea>
+            
+            <label style="font-size: 0.9rem; font-weight: bold;">⏳ Rảnh khoảng bao lâu?</label>
+            <input type="text" id="ai-time" class="ai-input" placeholder="VD: 2 tiếng, 45 phút...">
+            
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button class="btn" style="background: var(--success);" id="btn-ask-ai" onclick="generateRealAITask()">⚡ Tạo Task Mới</button>
+                <button class="btn btn-danger" onclick="closeAIModal()">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card" style="border: 2px solid var(--gold);" id="gacha-card">
+        <h2 style="color: var(--gold); margin-bottom: 5px;">Đài Cầu Nguyện</h2>
+        
+        <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+            <div style="font-weight: bold; color: var(--neon-blue);">Vé Thường: <span id="current-spins" style="font-size: 1.3rem;">0</span>🎫</div>
+            <div style="font-weight: bold; color: var(--vip-color);">Vé VIP: <span id="stat-vip-spins-2" style="font-size: 1.3rem;">0</span>👑</div>
+        </div>
+
+        <div style="font-size: 0.8rem; color: var(--text-muted); text-align: center;">Bảo hiểm Banner Thường (10 lần xịt = 1 Vé VIP)</div>
+        <div class="pity-bar-bg"><div class="pity-bar-fill" id="pity-bar"></div></div>
+        
+        <div class="reward-screen" id="reward-result">Thử nhân phẩm đi sếp...</div>
+        
+        <div style="display: flex; gap: 10px;">
+            <button class="btn" id="spin-btn-normal" style="background: linear-gradient(135deg, #3b82f6, #8b5cf6);" onclick="spin('normal')">
+                🎫 RÚT THƯỜNG
+            </button>
+            <button class="btn btn-vip" id="spin-btn-vip" onclick="spin('vip')">
+                👑 RÚT VIP
+            </button>
+       <div id="banner-items-list" style="margin-top: 15px; font-size: 0.8rem; color: var(--text-muted); background: rgba(0,0,0,0.3); padding: 10px; border-radius: 10px; text-align: left; max-height: 150px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1);">
+            </div>
+    </div>
+
+    <div class="card">
+        <h3 style="color: var(--neon-blue); text-align: left;">⚙️ Bảng Tỉ Lệ Rớt Đồ (Nhà Cái)</h3>
+        
+        <h4 style="margin: 10px 0 5px 0; color: #38bdf8;">Banner Thường</h4>
+        <div id="settings-normal"></div>
+        <button class="btn btn-small" style="background: rgba(56, 189, 248, 0.2);" onclick="addReward('normal')">+ Thêm đồ Thường</button>
+        
+        <h4 style="margin: 15px 0 5px 0; color: var(--vip-color);">Banner VIP</h4>
+        <div id="settings-vip"></div>
+        <button class="btn btn-small" style="background: rgba(245, 158, 11, 0.2);" onclick="addReward('vip')">+ Thêm đồ VIP</button>
+        
+        <button class="btn btn-success" style="margin-top: 15px;" onclick="saveSettings()">💾 Lưu Tỉ Lệ</button>
+        <div id="miss-rate-info" style="text-align:center; font-size:0.8rem; margin-top:10px; color:var(--danger)"></div>
+    </div>
+
+    <div class="card">
+        <h2 style="color: var(--neon-purple); text-align: left;">🎒 Không Gian Trữ Đồ</h2>
+        <div class="inventory-list" id="inventory-container"></div>
+    </div>
+
+</div>
+
+<script>
+    // --- 1. CORE DATA & INITIALIZATION ---
+    let userData = {
+        totalTime: 0, streakDays: 0, lastStudyDate: null, 
+        spinsAvailable: 0, vipSpins: 0, pityCount: 0, 
+        inventory: {}, quests: [], history: [], 
+        creditScore: 600, debtSpins: 0, bossDefeatedToday: false,
+        skills: { "AI Engineering": 1, "IELTS": 1, "Toán Rời Rạc": 1, "Gym": 1 },
+        badges: [], // Lưu các huy hiệu
+        weeklyStats: { "Mon":0, "Tue":0, "Wed":0, "Thu":0, "Fri":0, "Sat":0, "Sun":0 } // Analytics
+    };
+
+    let rewards = {
+        vip: [
+            { name: "SSR: Thẻ Đóng Băng Chuỗi (Cứu Streak)", probability: 10 },
+            { name: "SSR: Nghỉ tập Gym 1 hôm", probability: 20 },
+            { name: "SR: Ăn xả láng 1 bữa", probability: 20 },
+            { name: "SR: Chill 1 tiếng chìm đắm", probability: 50 }
+        ],
+        normal: [
+            { name: "R: Lướt TopTop 20 phút", probability: 20 },
+            { name: "R: Làm 1 ly Đen Đá", probability: 30 },
+            { name: "N: Ăn trái cây", probability: 50 }
+        ]
+    };
+
+    let radarChartInst = null;
+    let barChartInst = null;
+
+    window.onload = function() { 
+        loadData(); checkNewDay(); checkBoss(); 
+        updateUI(); drawCharts(); renderSettings();
+    };
+
+    // --- 2. DATA MANAGEMENT ---
+    function loadData() { 
+        let s = localStorage.getItem('dopaVUltimate'); let r = localStorage.getItem('dopaVUltimateRewards'); 
+        if (s) {
+            let parsed = JSON.parse(s);
+            userData = {...userData, ...parsed}; 
+            // Đảm bảo có các object mới nếu nạp data cũ
+            if(!userData.skills) userData.skills = { "AI": 1 };
+            if(!userData.badges) userData.badges = [];
+            if(!userData.weeklyStats) userData.weeklyStats = { "Mon":0, "Tue":0, "Wed":0, "Thu":0, "Fri":0, "Sat":0, "Sun":0 };
+        }
+        if(r) rewards = JSON.parse(r); 
+    }
+    function saveData() { localStorage.setItem('dopaVUltimate', JSON.stringify(userData)); localStorage.setItem('dopaVUltimateRewards', JSON.stringify(rewards)); }
+
+    // --- 3. UI & CHARTS (RANKS, BADGES, SKILLS) ---
+    function drawCharts() {
+        // Radar Chart
+        const ctxRadar = document.getElementById('skillChart').getContext('2d');
+        if (radarChartInst) radarChartInst.destroy();
+        radarChartInst = new Chart(ctxRadar, {
+            type: 'radar',
+            data: { labels: Object.keys(userData.skills), datasets: [{ data: Object.values(userData.skills), backgroundColor: 'rgba(192, 132, 252, 0.4)', borderColor: '#c084fc', borderWidth: 2, pointBackgroundColor: '#fbbf24' }] },
+            options: { scales: { r: { angleLines: { color: 'rgba(255,255,255,0.1)' }, grid: { color: 'rgba(255,255,255,0.1)' }, pointLabels: { color: '#38bdf8', font: { size: 10 } }, ticks: { display: false, min: 0 } } }, plugins: { legend: { display: false } }, maintainAspectRatio: false }
+        });
+
+        // Bar Chart (Analytics)
+        const ctxBar = document.getElementById('weeklyChart').getContext('2d');
+        if (barChartInst) barChartInst.destroy();
+        barChartInst = new Chart(ctxBar, {
+            type: 'bar',
+            data: { labels: ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'], datasets: [{ label: 'Phút', data: Object.values(userData.weeklyStats), backgroundColor: '#10b981', borderRadius: 5 }] },
+            options: { scales: { y: { beginAtZero: true, grid: {color: '#333'} }, x: { grid: {display: false} } }, plugins: { legend: { display: false } }, maintainAspectRatio: false }
+        });
+    }
+
+    function updateUI() {
+        // Stats
+        document.getElementById('stat-time').innerText = userData.totalTime;
+        document.getElementById('stat-streak').innerText = userData.streakDays + "🔥";
+        document.getElementById('stat-vip-spins').innerText = userData.vipSpins + "👑";
+        document.getElementById('stat-vip-spins-2').innerText = userData.vipSpins;
+        document.getElementById('current-spins').innerText = userData.spinsAvailable;
+        document.getElementById('credit-score').innerText = userData.creditScore;
+
+        // Rank
+        let totalLv = Object.values(userData.skills).reduce((a, b) => a + b, 0);
+        const rankArr = ["Kẻ Vô Danh", "Tân Binh Học Viện", "Đại Sư Tập Trung", "Chiến Thần Deadline", "Kẻ Hủy Diệt Bug", "Thực Thể AI"];
+        let rankIdx = Math.min(Math.floor(totalLv / 10), 5); // Cứ 10 level tổng thì lên 1 hạng
+        document.getElementById('rank-display').innerText = rankArr[rankIdx];
+
+        // Badges
+        let badgeHtml = "";
+        userData.badges.forEach(b => { badgeHtml += `<span class="badge">${b}</span>`; });
+        document.getElementById('badges-container').innerHTML = badgeHtml;
+
+        // Skill Management & Dropdown
+        const tagSel = document.getElementById('skill-tag');
+        const listDiv = document.getElementById('dynamic-skills-list');
+        tagSel.innerHTML = ""; listDiv.innerHTML = "";
+        let oldTag = tagSel.value;
+
+        for (let s in userData.skills) {
+            tagSel.innerHTML += `<option value="${s}" ${s===oldTag?'selected':''}>${s}</option>`;
+            let lv = Math.floor(userData.skills[s]);
+            let exp = Math.round((userData.skills[s] % 1) * 100);
+            listDiv.innerHTML += `
+                <div class="skill-list-item">
+                    <div style="flex-grow:1;">
+                        <span style="font-weight:bold; color:var(--neon-blue);">${s}</span> (Lv.${lv})
+                        <div class="skill-progress-bar"><div class="skill-progress-fill" style="width:${exp}%"></div></div>
+                    </div>
+                    <button class="btn btn-small btn-danger" style="margin-left:10px;" onclick="removeSkill('${s}')">X</button>
+                </div>
+            `;
+        }
+
+        // Pity & Debt
+        document.getElementById('pity-bar').style.width = (userData.pityCount/10)*100 + "%";
+        document.getElementById('pity-bar').style.background = userData.pityCount >= 9 ? "var(--danger)" : "var(--gold)";
+        let dAlert = document.getElementById('debt-alert');
+        if (userData.debtSpins > 0) { dAlert.style.display = 'block'; document.getElementById('debt-amount').innerText = userData.debtSpins; } else dAlert.style.display = 'none';
+
+        // Quests
+        let qHtml = '';
+        userData.quests.forEach((q, i) => { qHtml += `<div class="quest-item ${q.done?'done':''}"><span>🎯 ${q.desc}</span>${q.done?`<span style="color:var(--success)">✔</span>`:`<button class="btn btn-small btn-outline" onclick="completeQuest(${i})">Xong (+${q.reward})</button>`}</div>`; });
+        document.getElementById('quest-container').innerHTML = qHtml || `<div style="text-align: center; color: #666; padding: 10px;">Bấm 'Cố Vấn AI' để nạp task.</div>`;
+
+        // Inventory
+        let iHtml = ''; let hasInv = false;
+        for (const [k, v] of Object.entries(userData.inventory)) { if (v>0) { hasInv=true; iHtml += `<div class="inv-item"><span style="color:${k.includes("SSR")?'var(--vip-color)':'var(--neon-blue)'}; font-weight:bold;">${k}</span><div><span class="inv-badge">x${v}</span><button class="btn btn-small" style="margin-left:10px" onclick="useItem('${k}')">Dùng</button></div></div>`; } }
+        document.getElementById('inventory-container').innerHTML = hasInv ? iHtml : `<div style="text-align: center; color: #666; padding: 10px;">Túi đồ rỗng.</div>`;
+// --- ĐOẠN DÁN THÊM: HIỂN THỊ CHI TIẾT BANNER ---
+        let bannerHtml = '<div style="display:flex; gap:10px;">';
+        
+        // Cột Đồ Thường
+        bannerHtml += '<div style="flex:1"><b>🎫 Đồ Thường:</b><br>';
+        rewards.normal.forEach(r => {
+            bannerHtml += `<div style="margin-top:4px;">• ${r.name} <span style="color:#38bdf8">(${r.probability}%)</span></div>`;
+        });
+        bannerHtml += '</div>';
+
+        // Cột Đồ VIP
+        bannerHtml += '<div style="flex:1; border-left:1px dashed #555; padding-left:10px;"><b>👑 Đồ VIP:</b><br>';
+        rewards.vip.forEach(r => {
+            bannerHtml += `<div style="margin-top:4px; color:var(--vip-color)">• ${r.name} (${r.probability}%)</div>`;
+        });
+        bannerHtml += '</div></div>';
+
+        let bannerEl = document.getElementById('banner-items-list');
+        if(bannerEl) bannerEl.innerHTML = bannerHtml;
+        // ----------------------------------------------
+        saveData();
+    }
+
+    // --- 4. SKILL & SETTINGS MANAGEMENT ---
+    function addNewSkill() {
+        let name = document.getElementById('new-skill-input').value.trim();
+        if(name && !userData.skills[name]) { userData.skills[name] = 1.0; document.getElementById('new-skill-input').value = ""; updateUI(); drawCharts(); }
+    }
+    function removeSkill(name) {
+        if(Object.keys(userData.skills).length <= 1) return alert("Phải giữ lại ít nhất 1 kỹ năng!");
+        if(confirm(`Xóa nhánh [${name}]? Mất hết Level đó nha!`)) { delete userData.skills[name]; updateUI(); drawCharts(); }
+    }
+
+    function renderSettings() {
+        ['normal', 'vip'].forEach(type => {
+            const container = document.getElementById(`settings-${type}`);
+            container.innerHTML = ""; let total = 0;
+            rewards[type].forEach((r, idx) => {
+                total += r.probability;
+                container.innerHTML += `
+                    <div class="setting-row">
+                        <input type="text" class="setting-input" style="flex-grow:1;" value="${r.name}" onchange="updateRew('${type}', ${idx}, 'name', this.value)">
+                        <input type="number" class="setting-input" style="width:50px;" value="${r.probability}" onchange="updateRew('${type}', ${idx}, 'prob', this.value)">%
+                        <button class="btn btn-small btn-danger" onclick="removeRew('${type}', ${idx})">X</button>
+                    </div>`;
+            });
+            if(type==='normal') document.getElementById('miss-rate-info').innerText = `Tỉ lệ Tạch (Rác): ${100 - total}%`;
+        });
+    }
+    function updateRew(type, idx, field, val) { if (field === 'name') rewards[type][idx].name = val; if (field === 'prob') rewards[type][idx].probability = parseFloat(val) || 0; renderSettings(); }
+    function addReward(type) { rewards[type].push({ name: "Đồ mới", probability: 0 }); renderSettings(); }
+    function removeRew(type, idx) { rewards[type].splice(idx, 1); renderSettings(); }
+   function saveSettings() { 
+        let totalNormal = rewards.normal.reduce((sum, item) => sum + item.probability, 0);
+        let totalVIP = rewards.vip.reduce((sum, item) => sum + item.probability, 0);
+
+        if (totalNormal !== 100) return alert(`❌ Bảng Thường: Tổng tỉ lệ đang là ${totalNormal}%. Phải chỉnh đúng 100% mới được lưu!`);
+        if (totalVIP !== 100) return alert(`❌ Bảng VIP: Tổng tỉ lệ đang là ${totalVIP}%. Phải chỉnh đúng 100% mới được lưu!`);
+
+        saveData(); 
+        alert("✅ Đã lưu cấu hình Nhà Cái thành công!"); 
+    }
+    // --- 5. STREAK, FREEZE CARD & BADGES ---
+    function checkNewDay() {
+        const today = new Date().toDateString();
+        if (userData.lastStudyDate !== today) {
+            if (userData.lastStudyDate) {
+                let yest = new Date(); yest.setDate(yest.getDate() - 1);
+                if (userData.lastStudyDate !== yest.toDateString()) {
+                    // Check Thẻ Đóng Băng
+                    if(userData.inventory["SSR: Thẻ Đóng Băng Chuỗi (Cứu Streak)"] > 0) {
+                        userData.inventory["SSR: Thẻ Đóng Băng Chuỗi (Cứu Streak)"]--;
+                        alert("❄️ Thần hộ mệnh! Thẻ Đóng Băng đã tự động kích hoạt để giữ chuỗi (Streak) của bạn.");
+                    } else {
+                        userData.streakDays = 0; // Mất chuỗi
+                    }
+                }
+            }
+            userData.quests = userData.quests.filter(q => q.desc.includes("🤖"));
+            userData.bossDefeatedToday = false;
+            userData.lastStudyDate = today; saveData();
+        }
+    }
+
+    function checkBadges() {
+        if(userData.totalTime >= 6000 && !userData.badges.includes("🏆 100 Giờ Bền Bỉ")) userData.badges.push("🏆 100 Giờ Bền Bỉ");
+        if(userData.streakDays >= 30 && !userData.badges.includes("🔥 Chuỗi 1 Tháng")) userData.badges.push("🔥 Chuỗi 1 Tháng");
+    }
+
+    // --- 6. POMODORO, LOFI & NOTES ---
+    let timerInterval = null; let timeLeft = 0; let initialMins = 0; let activeTag = '';
+    const dayMap = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    let isLofiPlaying = false;
+
+    function formatTime(sec) { let m = Math.floor(sec/60); let s = sec%60; return `${m<10?'0':''}${m}:${s<10?'0':''}${s}`; }
+    
+    function toggleLofi() {
+        const audio = document.getElementById('lofi-audio');
+        const btn = document.getElementById('btn-lofi');
+        if(isLofiPlaying) { audio.pause(); btn.innerText = "🎵 Bật Lofi"; } 
+        else { audio.play().catch(e => console.log("Trình duyệt chặn Autoplay")); btn.innerText = "🔇 Tắt Lofi"; }
+        isLofiPlaying = !isLofiPlaying;
+    }
+   let targetTime = 0;
+   function startTimer() {
+        if (!timerInterval) {
+            if (timeLeft === 0) { 
+                initialMins = parseInt(document.getElementById('pomo-input').value) || 25; 
+                timeLeft = initialMins * 60; 
+                activeTag = document.getElementById('skill-tag').value;
+            }
+            // Lấy giờ hiện tại + số giây cần đếm = Thời điểm kết thúc chính xác
+            targetTime = Date.now() + (timeLeft * 1000); 
+
+            document.getElementById('btn-start').style.display = 'none'; 
+            document.getElementById('btn-pause').style.display = 'inline-block';
+            
+            timerInterval = setInterval(() => { 
+                // Mỗi giây, lấy thời điểm kết thúc trừ đi thời gian hiện tại
+                timeLeft = Math.round((targetTime - Date.now()) / 1000);
+                
+                if (timeLeft <= 0) {
+                    timeLeft = 0;
+                    document.getElementById('clock-display').innerText = "00:00";
+                    completePomodoro(); 
+                } else {
+                    document.getElementById('clock-display').innerText = formatTime(timeLeft);
+                }
+            }, 1000);
+        }
+    }
+    function pauseTimer() { clearInterval(timerInterval); timerInterval = null; document.getElementById('btn-start').style.display = 'inline-block'; document.getElementById('btn-pause').style.display = 'none'; document.getElementById('btn-start').innerText = "▶ TIẾP TỤC"; }
+    function resetTimer() { pauseTimer(); timeLeft = 0; document.getElementById('clock-display').innerText = formatTime(parseInt(document.getElementById('pomo-input').value)*60); document.getElementById('btn-start').innerText = "▶ BẮT ĐẦU"; }
+
+    function completePomodoro() {
+        pauseTimer(); resetTimer(); playSound('ting');
+        
+        // Xin Ghi Chú (Note)
+        let note = prompt("Hoàn thành! Hãy ghi chú 1 câu ngắn bạn vừa học được gì (AI sẽ nhớ điều này):", "Đã luyện tập tốt.");
+        if(note) {
+            userData.history.push(note);
+            if(userData.history.length > 5) userData.history.shift();
+        }
+
+        userData.totalTime += initialMins; if (userData.streakDays === 0) userData.streakDays = 1;
+        
+        // Analytics
+        let currentDayStr = dayMap[new Date().getDay()];
+        userData.weeklyStats[currentDayStr] += initialMins;
+
+        // Kỹ năng
+        userData.skills[activeTag] = parseFloat((userData.skills[activeTag] + (initialMins/30)).toFixed(1));
+        
+        checkBadges();
+        drawCharts();
+
+        let isBossActive = document.getElementById('boss-section').style.display === 'block';
+        if (isBossActive && initialMins >= 120) { killBoss(); return; }
+
+        let minsLeft = initialMins; let debtPaid = 0;
+        while(userData.debtSpins > 0 && minsLeft >= 45) { userData.debtSpins--; minsLeft -= 45; debtPaid++; userData.creditScore += 15; }
+
+        let earnedSpins = Math.floor(minsLeft / (userData.streakDays >= 7 ? 30 : 50));
+        let msg = `✅ Hoàn thành ${initialMins} phút!\n`;
+        if (initialMins >= 90) { userData.vipSpins += 1; msg += `🌟 Đột phá: Nhận 1 Vé VIP!\n`; }
+        userData.spinsAvailable += earnedSpins; saveData(); updateUI();
+        if (debtPaid > 0) msg += `🏦 Đã trừ ${debtPaid * 45} phút để trả nợ.\n`;
+        if (earnedSpins > 0) msg += `🎁 Nhận thêm: ${earnedSpins} Vé Thường.`;
+        alert(msg);
+    }
+
+    // --- 7. AI TASK & AI BOSS ---
+    function openAIModal() { document.getElementById('ai-modal').style.display = 'flex'; const savedKey = localStorage.getItem('dopaGKey'); if (savedKey) document.getElementById('gemini-api-key').value = savedKey; }
+    function closeAIModal() { document.getElementById('ai-modal').style.display = 'none'; }
+
+    async function callGemini(promptText, btnElement, loadingText) {
+        const apiKey = document.getElementById('gemini-api-key').value.trim() || localStorage.getItem('dopaGKey');
+        if (!apiKey) { alert("Thiếu API Key!"); return null; }
+        localStorage.setItem('dopaGKey', apiKey);
+        
+        if(btnElement) { btnElement.innerText = loadingText; btnElement.disabled = true; }
+        try {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] })
+            });
+            if (!response.ok) throw new Error("API lỗi");
+            const data = await response.json();
+            return data.candidates[0].content.parts[0].text;
+        } catch (error) { alert("Lỗi kết nối AI!"); return null; }
+        finally { if(btnElement) { btnElement.innerText = "⚡ Phân Tích & Tạo Task"; btnElement.disabled = false; } }
+    }
+
+    async function generateRealAITask() {
+        const goal = document.getElementById('ai-goal').value.trim();
+        const time = document.getElementById('ai-time').value.trim();
+        const btn = document.getElementById('btn-ask-ai');
+        if(!goal) return alert("Sếp nhập mục tiêu vào đã!");
+
+        const historyText = userData.history.length > 0 ? userData.history.join(" | ") : "Chưa có";
+        const systemPrompt = `Time: "${time}". Goal: "${goal}". History: [${historyText}]. Generate EXACTLY 3 JSON tasks continuing learning: [{"desc": "Làm A...", "reward": 2}]. JSON ONLY.`;
+        
+        let result = await callGemini(systemPrompt, btn, "⏳ Đang lật nhật ký...");
+        if(result) {
+            try {
+                // TÌM VÀ TRÍCH XUẤT ĐÚNG ĐOẠN MẢNG JSON TRONG NGOẶC VUÔNG []
+                let jsonMatch = result.match(/\[[\s\S]*\]/);
+                if (!jsonMatch) throw new Error("AI không trả về định dạng mảng.");
+
+                let aiTasks = JSON.parse(jsonMatch[0]);
+                aiTasks.forEach(task => { userData.quests.push({ id: Date.now()+Math.random(), desc: "🤖 " + task.desc, done: false, reward: task.reward }); });
+                
+                saveData(); updateUI(); closeAIModal();
+                document.getElementById('ai-goal').value = "";
+            } catch (err) {
+                alert("Lỗi đọc dữ liệu AI: " + err.message);
+                console.log("Dữ liệu thô AI trả về:", result);
+            }
+        }
+    }
+
+    async function summonAIBoss() {
+        // Tìm môn yếu nhất
+        let weakestSkill = Object.keys(userData.skills).reduce((a, b) => userData.skills[a] < userData.skills[b] ? a : b);
+        let prompt = `Tạo một cái tên Ngầu (max 5 chữ) và 1 câu mô tả (max 15 chữ) cho một con Quái Vật đại diện cho sự yếu kém trong môn học "${weakestSkill}". Trả về JSON: {"name": "Tên Boss", "desc": "Mô tả"}`;
+        
+        // Gọi AI ngầm (không cần modal)
+        let result = await callGemini(prompt, null, "");
+        if(result) {
+            try {
+                let bossData = JSON.parse(result.replace(/```json/g, "").replace(/```/g, "").trim());
+                document.getElementById('boss-name').innerText = "👹 BOSS: " + bossData.name;
+                document.getElementById('boss-desc').innerText = bossData.desc;
+            } catch(e) {} // Fallback to default if parse fails
+        } else {
+            document.getElementById('boss-name').innerText = "👹 ÁC MỘNG " + weakestSkill.toUpperCase();
+            document.getElementById('boss-desc').innerText = "Vượt qua giới hạn của chính mình!";
+        }
+        document.getElementById('boss-section').style.display = 'block';
+        playSound('epic'); // Play boss sound
+    }
+
+    function killBoss() {
+        userData.bossDefeatedToday = true; document.getElementById('boss-hp-fill').style.width = '0%';
+        setTimeout(() => {
+            document.getElementById('boss-section').style.display = 'none'; 
+            userData.spinsAvailable += 5; userData.vipSpins += 3;
+            saveData(); updateUI(); alert("💥 BOSS BỊ TIÊU DIỆT.\nNhận: 5 Vé Thường + 3 VÉ VIP VÀNG!");
+            document.getElementById('boss-hp-fill').style.width = '100%'; // reset HP bar
+        }, 1000);
+    }
+
+    function completeQuest(idx) {
+        if (!userData.quests[idx].done) {
+            userData.quests[idx].done = true; userData.spinsAvailable += userData.quests[idx].reward;
+            userData.history.push(userData.quests[idx].desc.replace("🤖 ", ""));
+            if (userData.history.length > 5) userData.history.shift();
+            playSound('ting'); saveData(); updateUI();
+        }
+    }
+
+    // --- 8. GACHA (HIỆU ỨNG SLOT & PHÁO HOA) ---
+    function spin(type) {
+        if (type === 'normal' && userData.spinsAvailable <= 0) return alert("Hết Vé Thường!");
+        if (type === 'vip' && userData.vipSpins <= 0) return alert("Hết Vé VIP Vàng!");
+
+        if (type === 'normal') { userData.spinsAvailable--; userData.pityCount++; } else { userData.vipSpins--; }
+        updateUI();
+
+        const resultBox = document.getElementById('reward-result'); 
+        const gachaCard = document.getElementById('gacha-card');
+        const btnNorm = document.getElementById('spin-btn-normal'); const btnVip = document.getElementById('spin-btn-vip');
+        btnNorm.disabled = true; btnVip.disabled = true; 
+        resultBox.classList.remove('win-glow'); resultBox.classList.add('slot-machine-text');
+        gachaCard.style.animation = "bossShake 0.1s infinite"; // Rung lắc máy
+
+        let pool = rewards[type]; let ticks = 0;
+        let slotInt = setInterval(() => {
+            resultBox.innerText = pool[Math.floor(Math.random() * pool.length)].name;
+            ticks++;
+            if (ticks > 20) {
+                clearInterval(slotInt);
+                resultBox.classList.remove('slot-machine-text'); gachaCard.style.animation = "none";
+                
+                let isWin = false; let finalItem = null;
+                if (type === 'normal' && userData.pityCount >= 10) {
+                    userData.pityCount = 0; userData.vipSpins++; 
+                    finalItem = "🎁 BẢO HIỂM NỔ: Tặng 1 Vé VIP Vàng!"; isWin = true;
+                } else {
+                    let rand = Math.random() * 100; let cum = 0;
+                    for (let r of pool) { cum += r.probability; if (rand <= cum) { finalItem = r.name; isWin = true; break; } }
+                }
+
+                if (isWin) {
+                    if (!finalItem.includes("BẢO HIỂM")) {
+                        if(type === 'normal') userData.pityCount = 0;
+                        userData.inventory[finalItem] = (userData.inventory[finalItem] || 0) + 1;
+                    }
+                    resultBox.classList.add('win-glow');
+                    if(finalItem.includes("SSR") || type === 'vip') {
+                        fireConfetti(); screenFlash(); playSound('epic');
+                    } else { playSound('ting'); }
+                } else {
+                    finalItem = ["💀 Tạch rùi!", "🤡 Nhân phẩm rớt mạng", "🗑️ Quay vào ô cày tiếp!"][Math.floor(Math.random()*3)];
+                }
+                
+                resultBox.innerText = finalItem;
+                btnNorm.disabled = false; btnVip.disabled = false;
+                saveData(); updateUI();
+            }
+        }, 80);
+    }
+
+    // Effects helpers
+    function fireConfetti() {
+        for(let i=0; i<40; i++) {
+            let c = document.createElement('div'); c.className = 'confetti';
+            c.style.left = Math.random()*100 + 'vw';
+            c.style.background = ['#38bdf8','#c084fc','#fbbf24','#10b981'][Math.floor(Math.random()*4)];
+            c.style.animationDuration = (Math.random()*2+1) + 's';
+            document.body.appendChild(c);
+            setTimeout(() => c.remove(), 3000);
+        }
+    }
+    function screenFlash() {
+        let orig = document.body.style.backgroundColor;
+        document.body.style.backgroundColor = "white";
+        setTimeout(() => document.body.style.backgroundColor = orig, 100);
+    }
+  // Khởi tạo biến âm thanh duy nhất bên ngoài để không bị quá tải bộ nhớ
+    let globalAudioCtx = null;
+
+    function playSound(type) {
+        try {
+            if (!globalAudioCtx) {
+                globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (globalAudioCtx.state === 'suspended') {
+                globalAudioCtx.resume();
+            }
+            const o = globalAudioCtx.createOscillator(); 
+            const g = globalAudioCtx.createGain();
+            o.connect(g); g.connect(globalAudioCtx.destination);
+            
+            if(type === 'ting') { o.type='sine'; o.frequency.setValueAtTime(1000, globalAudioCtx.currentTime); g.gain.setValueAtTime(0.1, globalAudioCtx.currentTime); o.start(); g.gain.exponentialRampToValueAtTime(0.00001, globalAudioCtx.currentTime+0.5); o.stop(globalAudioCtx.currentTime+0.5); }
+            if(type === 'epic') { o.type='sawtooth'; o.frequency.setValueAtTime(200, globalAudioCtx.currentTime); o.frequency.exponentialRampToValueAtTime(800, globalAudioCtx.currentTime+1); g.gain.setValueAtTime(0.2, globalAudioCtx.currentTime); o.start(); g.gain.exponentialRampToValueAtTime(0.00001, globalAudioCtx.currentTime+1.5); o.stop(globalAudioCtx.currentTime+1.5); }
+        } catch(e) { console.log("Lỗi âm thanh:", e); }
+    }
+
+    // --- 9. UTILS (CAPTURE, INVENTORY) ---
+    function captureProfile() {
+        html2canvas(document.querySelector("#profile-capture-area"), { backgroundColor: "#0f172a" }).then(canvas => {
+            let a = document.createElement('a'); a.href = canvas.toDataURL("image/png");
+            a.download = `Dopa_Profile_${new Date().toISOString().slice(0,10)}.png`; a.click();
+        });
+    }
+
+    function borrowSpin() { if(userData.creditScore < 300) return alert("Hết uy tín!"); userData.debtSpins++; userData.spinsAvailable++; userData.creditScore -= 10; updateUI(); }
+    function useItem(itemName) { if (confirm(`Sử dụng vật phẩm: [${itemName}] ?`)) { userData.inventory[itemName]--; if (userData.inventory[itemName] <= 0) delete userData.inventory[itemName]; updateUI(); alert("Enjoy đi sếp!"); } }
+    
+    function exportJSON() { const url = URL.createObjectURL(new Blob([JSON.stringify(userData)], { type: "application/json" })); const a = document.createElement('a'); a.href = url; a.download = `Dopa_Univ_Data.json`; a.click(); }
+    function importJSON(e) { const fr = new FileReader(); fr.onload = function(ev) { try { userData = JSON.parse(ev.target.result); saveData(); alert("Nạp thành công!"); location.reload(); } catch(err){alert("File lỗi!");} }; fr.readAsText(e.target.files[0]); }
+</script>
+<div id="dev-panel" style="position: fixed; bottom: 20px; left: 20px; z-index: 9999;">
+    <button onclick="toggleDevPanel()" style="background: #e11d48; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">🛠️</button>
+    
+    <div id="dev-controls" style="display: none; background: rgba(15, 23, 42, 0.95); border: 2px solid #e11d48; padding: 15px; border-radius: 10px; margin-bottom: 10px; width: 220px; box-shadow: 0 10px 25px rgba(0,0,0,0.8);">
+        <h4 style="color: #e11d48; margin-top: 0; text-align: center; margin-bottom: 10px;">BẢNG HACK (DEV)</h4>
+        
+        <button onclick="devAddSpins(10, 'normal')" style="width: 100%; padding: 5px; margin-bottom: 5px; background: var(--neon-blue); border: none; border-radius: 5px; color: black; font-weight: bold; cursor: pointer;">+10 Vé Thường</button>
+        
+        <button onclick="devAddSpins(5, 'vip')" style="width: 100%; padding: 5px; margin-bottom: 5px; background: var(--vip-color); border: none; border-radius: 5px; color: black; font-weight: bold; cursor: pointer;">+5 Vé VIP Vàng</button>
+        
+        <button onclick="devAddExp()" style="width: 100%; padding: 5px; margin-bottom: 5px; background: var(--success); border: none; border-radius: 5px; color: black; font-weight: bold; cursor: pointer;">+60 Phút Kỹ năng đang chọn</button>
+        
+        <button onclick="devAddStreak()" style="width: 100%; padding: 5px; background: #f97316; border: none; border-radius: 5px; color: white; font-weight: bold; cursor: pointer;">+1 Ngày Streak 🔥</button>
+    </div>
+</div>
+
+<script>
+    // Các hàm phục vụ Dev Mode
+    function toggleDevPanel() {
+        const panel = document.getElementById('dev-controls');
+        panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function devAddSpins(amount, type) {
+        if (type === 'normal') userData.spinsAvailable += amount;
+        if (type === 'vip') userData.vipSpins += amount;
+        updateUI();
+    }
+
+    function devAddExp() {
+        let currentTag = document.getElementById('skill-tag').value; // Lấy môn đang chọn ở dropdown
+        if (!currentTag) return alert("Sếp chưa thêm kỹ năng nào!");
+        
+        userData.totalTime += 60;
+        userData.skills[currentTag] = parseFloat((userData.skills[currentTag] + (60/30)).toFixed(1)); // 60p = 2 level
+        checkBadges();
+        updateUI();
+        drawCharts();
+    }
+
+    function devAddStreak() {
+        userData.streakDays += 1;
+        updateUI();
+    }
+</script>
+</body>
+</html>
