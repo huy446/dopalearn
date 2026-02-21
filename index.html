@@ -153,14 +153,14 @@
         </div>
     </div>
     
-   <div style="display: flex; gap: 10px; justify-content: center; margin-top: -15px; margin-bottom: 20px; flex-wrap: wrap;">
+  <div style="display: flex; gap: 10px; justify-content: center; margin-top: -15px; margin-bottom: 20px; flex-wrap: wrap;">
+        <button class="btn btn-small" style="background: #3b82f6;" onclick="updateUI(); drawCharts();">🔄 Làm Mới Giao Diện</button>
         <button class="btn btn-small" style="background: #e11d48;" onclick="captureProfile()">📸 Chụp Profile Flex</button>
         <button class="btn btn-small btn-outline" onclick="exportJSON()">💾 Backup</button>
         <button class="btn btn-small btn-outline" onclick="document.getElementById('import-file').click()">📂 Import</button>
         <button class="btn btn-small btn-danger" onclick="resetData()">⚠️ Reset Toàn Bộ</button>
         <input type="file" id="import-file" style="display: none;" accept=".json" onchange="importJSON(event)">
     </div>
-
     <div class="card">
         <h3 style="color: var(--neon-blue);">🛠️ Quản Lý Nhánh Kỹ Năng</h3>
         <div style="display: flex; gap: 5px; margin-bottom: 10px;">
@@ -552,9 +552,12 @@
             audio.play().catch(e => console.log("Trình duyệt chặn Autoplay")); 
             btn.innerText = "🔇 Tắt Lofi"; 
         }
-        isLofiPlaying = !isLofiPlaying;
-    }tTime = 0;
-   function startTimer() {
+      isLofiPlaying = !isLofiPlaying;
+    }
+
+    let targetTime = 0;
+
+    function startTimer() {
         if (!timerInterval) {
             if (timeLeft === 0) { 
                 initialMins = parseInt(document.getElementById('pomo-input').value) || 25; 
