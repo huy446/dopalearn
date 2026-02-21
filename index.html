@@ -12,98 +12,123 @@
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 
     <style>
+       @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap');
+
         :root {
-            --bg-dark: #0f172a; --card-bg: #1e293b; --neon-blue: #38bdf8;
-            --neon-purple: #c084fc; --gold: #fbbf24; --danger: #ef4444;
-            --success: #10b981; --text-main: #f8fafc; --text-muted: #94a3b8;
-            --vip-color: #f59e0b;
+            --bg-dark: #0f172a; --card-bg: rgba(30, 41, 59, 0.7); /* Thêm độ trong suốt */
+            --neon-blue: #38bdf8; --neon-purple: #c084fc; 
+            --gold: #fbbf24; --danger: #ef4444; --success: #10b981; 
+            --text-main: #f8fafc; --text-muted: #94a3b8; --vip-color: #f59e0b;
         }
 
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: var(--bg-dark); color: var(--text-main); margin: 0; display: flex; justify-content: center; padding: 20px 0; overflow-x: hidden;}
-        .container { width: 95%; max-width: 650px; }
+        /* 1. NỀN ĐỘNG (ANIMATED BACKGROUND) & FONT CHỮ */
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            color: var(--text-main); margin: 0; display: flex; justify-content: center; padding: 30px 10px;
+            background: linear-gradient(-45deg, #0f172a, #1e1b4b, #0f172a, #2e1065);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+        }
+        @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+
+        /* 2. CHIA 2 CỘT CHO MÁY TÍNH (MASONRY LAYOUT) */
+        .container { width: 100%; max-width: 650px; }
+        @media (min-width: 850px) {
+            .container { max-width: 900px; column-count: 2; column-gap: 20px; }
+            .card { break-inside: avoid; } /* Không bị cắt đôi card khi chia cột */
+            h1 { column-span: all; margin-bottom: 40px;} /* Tiêu đề nằm giữa 2 cột */
+        }
         
-        h1, h2, h3 { margin-top: 0; text-align: center; }
-        h1 { font-size: 2.2rem; background: linear-gradient(to right, var(--neon-blue), var(--neon-purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 0 15px rgba(192, 132, 252, 0.4); margin-bottom: 25px; }
+        h1, h2, h3, h4 { margin-top: 0; text-align: center; }
+        h1 { font-size: 2.8rem; font-weight: 800; background: linear-gradient(to right, var(--neon-blue), var(--neon-purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0px 0px 10px rgba(192,132,252,0.4)); margin-bottom: 25px; }
 
-        .card { background: var(--card-bg); border-radius: 20px; padding: 20px; margin-bottom: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.05); position: relative; }
+        /* 3. HIỆU ỨNG KÍNH MỜ CHO CARD (GLASSMORPHISM) */
+        .card { 
+            background: var(--card-bg); border-radius: 24px; padding: 25px; margin-bottom: 20px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
+            border: 1px solid rgba(255,255,255,0.08); position: relative;
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 15px 40px rgba(0,0,0,0.7); border-color: rgba(255,255,255,0.15); }
 
-        /* --- NÚT BẤM --- */
-        .btn { background: linear-gradient(135deg, #6366f1, #a855f7); color: white; border: none; padding: 12px 20px; font-size: 1.1rem; border-radius: 12px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.2s; margin-top: 5px;}
-        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(168, 85, 247, 0.5); }
-        .btn-small { width: auto; font-size: 0.9rem; padding: 8px 15px; margin-top: 0;}
+        /* NÚT BẤM CẢI TIẾN */
+        .btn { background: linear-gradient(135deg, #6366f1, #a855f7); color: white; border: none; padding: 12px 20px; font-size: 1rem; border-radius: 14px; cursor: pointer; font-weight: 600; width: 100%; transition: all 0.2s; font-family: inherit;}
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(168, 85, 247, 0.5); filter: brightness(1.1);}
+        .btn:active { transform: translateY(1px); }
+        .btn-small { width: auto; font-size: 0.85rem; padding: 8px 15px; margin-top: 0;}
         .btn-success { background: var(--success); }
         .btn-danger { background: var(--danger); }
-        .btn-outline { background: transparent; border: 2px solid var(--neon-blue); color: var(--neon-blue); }
+        .btn-outline { background: rgba(255,255,255,0.05); border: 1px solid var(--neon-blue); color: var(--neon-blue); }
         .btn-vip { background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4); color: #000;}
-        .btn-ai { background: linear-gradient(90deg, #10b981, #3b82f6); box-shadow: 0 0 10px rgba(16, 185, 129, 0.5); animation: pulseAI 2s infinite; }
-        @keyframes pulseAI { 0%, 100% { box-shadow: 0 0 10px rgba(16, 185, 129, 0.4); } 50% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.8); } }
+        .btn-ai { background: linear-gradient(90deg, #10b981, #3b82f6); box-shadow: 0 0 10px rgba(16, 185, 129, 0.4); animation: pulseAI 2s infinite; }
+        @keyframes pulseAI { 0%, 100% { box-shadow: 0 0 10px rgba(16, 185, 129, 0.4); } 50% { box-shadow: 0 0 25px rgba(59, 130, 246, 0.8); } }
 
-        /* --- CÂY KỸ NĂNG & PROFILE --- */
+        /* PROFILE CÁ NHÂN */
         .profile-card { border-top: 4px solid var(--neon-blue); }
         .charts-wrapper { display: flex; flex-direction: column; gap: 15px; align-items: center; margin-bottom: 15px; }
-        .chart-container { width: 100%; max-width: 300px; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 20px; }
+      /* --- ĐOẠN CSS ĐÃ ĐƯỢC BƠM THUỐC TRỊ LỖI TÀNG HÌNH --- */
+        .chart-container { 
+            position: relative; /* Bắt buộc phải có để Chart.js bám vào */
+            height: 260px; /* Bắt buộc ép chiều cao cứng để không bị xẹp */
+            width: 100%; 
+            max-width: 300px; 
+            padding: 10px; 
+            background: rgba(0,0,0,0.3); 
+            border-radius: 20px; 
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+            margin: 0 auto; /* Căn giữa */
+        }
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; text-align: center; margin-top: 15px; }
+        .stat-box { background: rgba(0,0,0,0.3); padding: 12px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05);}
+        .stat-value { font-size: 1.6rem; font-weight: 800; color: var(--gold); }
+        .stat-label { font-size: 0.75rem; color: var(--text-muted); font-weight: 600;}
         
-        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; text-align: center; margin-top: 15px; }
-        .stat-box { background: rgba(0,0,0,0.3); padding: 10px; border-radius: 10px; }
-        .stat-value { font-size: 1.4rem; font-weight: bold; color: var(--gold); }
-        .stat-label { font-size: 0.75rem; color: var(--text-muted); }
-        .backup-controls { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; justify-content: center; }
+        .rank-title { font-size: 1.8rem; color: var(--gold); text-align: center; margin-bottom: 10px; font-weight: 800; text-transform: uppercase; text-shadow: 0 0 15px rgba(251, 191, 36, 0.6); letter-spacing: 2px;}
+        .badges-container { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+        .badge { background: linear-gradient(45deg, #ff007f, #7928ca); padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; box-shadow: 0 2px 8px rgba(0,0,0,0.5);}
 
-        /* Rank & Badges */
-        .rank-title { font-size: 1.5rem; color: var(--gold); text-align: center; margin-bottom: 5px; font-weight: bold; text-transform: uppercase; text-shadow: 0 0 10px rgba(251, 191, 36, 0.5);}
-        .badges-container { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-bottom: 15px; }
-        .badge { background: linear-gradient(45deg, #ff007f, #7928ca); padding: 5px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.5);}
+        /* CÁC THANH PROGRESS */
+        .skill-list-item { display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.25); padding: 8px 12px; border-radius: 12px; margin-bottom: 8px; font-size: 0.9rem;}
+        .skill-progress-bar { height: 8px; background: rgba(0,0,0,0.5); border-radius: 4px; margin-top: 5px; overflow: hidden; }
+        .skill-progress-fill { height: 100%; background: linear-gradient(90deg, #38bdf8, #8b5cf6); border-radius: 4px;}
 
-        /* Quản lý kỹ năng */
-        .skill-list-item { display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); padding: 5px 10px; border-radius: 8px; margin-bottom: 5px; font-size: 0.9rem;}
-        .skill-progress-bar { height: 6px; background: rgba(0,0,0,0.5); border-radius: 3px; margin-top: 3px; overflow: hidden; }
-        .skill-progress-fill { height: 100%; background: var(--neon-blue); }
-
-        /* --- BANK --- */
-        .bank-card { border: 1px dashed var(--gold); background: linear-gradient(180deg, rgba(30, 41, 59, 1) 0%, rgba(69, 26, 3, 0.3) 100%); }
-        .credit-score { font-size: 2rem; font-weight: bold; }
-        .credit-good { color: var(--success); } .credit-warn { color: var(--gold); } .credit-bad { color: var(--danger); }
-        .debt-alert { background: rgba(239, 68, 68, 0.2); padding: 10px; border-radius: 10px; border-left: 4px solid var(--danger); margin-top: 10px; font-size: 0.9rem; display: none; }
-
-        /* --- BOSS --- */
-        .boss-card { display: none; border: 2px solid var(--danger); background: linear-gradient(180deg, rgba(30, 41, 59, 1) 0%, rgba(153, 27, 27, 0.4) 100%); animation: bossShake 3s infinite; }
-        @keyframes bossShake { 0%, 100% { transform: translateX(0); } 10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); } 20%, 40%, 60%, 80% { transform: translateX(2px); } }
-        .boss-hp { background: #000; height: 20px; border-radius: 10px; margin: 15px 0; border: 2px solid #333; overflow: hidden; position: relative;}
-        .boss-hp-fill { background: var(--danger); height: 100%; width: 100%; transition: width 1s; }
-        .boss-hp-text { position: absolute; width: 100%; text-align: center; top: 0; font-size: 0.8rem; font-weight: bold; line-height: 20px; color: white;}
-
-        /* --- POMODORO --- */
-        .clock-display { font-size: 4rem; font-weight: bold; color: var(--success); font-family: monospace; text-shadow: 0 0 20px rgba(16, 185, 129, 0.4); margin: 20px 0; text-align: center;}
-        .input-time { width: 80px; padding: 10px; font-size: 1.2rem; text-align: center; border-radius: 10px; background: rgba(0,0,0,0.5); color: white; border: 1px solid var(--success); }
-        .tag-select { background: #0f172a; color: var(--neon-blue); padding: 10px; border-radius: 10px; border: 1px solid var(--neon-blue); outline: none; font-size: 1rem; margin-left: 10px;}
-
-        /* --- AI & QUESTS --- */
-        .quest-item { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--gold); margin-bottom: 8px;}
-        .quest-item.done { opacity: 0.5; border-left-color: var(--success); text-decoration: line-through; }
-        .ai-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; }
-        .ai-modal-content { background: var(--card-bg); padding: 25px; border-radius: 20px; width: 90%; max-width: 500px; border: 2px solid var(--neon-blue); box-shadow: 0 0 30px rgba(56, 189, 248, 0.4); }
-        .ai-input { width: 100%; background: rgba(0,0,0,0.5); border: 1px solid var(--text-muted); color: white; padding: 10px; border-radius: 10px; margin-top: 10px; margin-bottom: 15px; font-family: inherit; font-size: 1rem; box-sizing: border-box; }
-        .ai-textarea { resize: vertical; min-height: 80px; }
-
-        /* --- GACHA BANNER --- */
-        .reward-screen { background: #000; min-height: 100px; display: flex; justify-content: center; align-items: center; margin: 20px 0; border: 2px solid #333; font-size: 1.2rem; font-weight: bold; color: var(--gold); border-radius: 10px; padding: 10px; text-align: center; }
+        /* BỐ CỤC UI CHUNG */
+        .bank-card { border: 1px dashed var(--gold); background: linear-gradient(180deg, rgba(30, 41, 59, 0.7) 0%, rgba(69, 26, 3, 0.4) 100%); }
+        .credit-score { font-size: 2.2rem; font-weight: 800; }
+        
+        .clock-display { font-size: 4.5rem; font-weight: bold; color: var(--success); font-family: monospace; text-shadow: 0 0 20px rgba(16, 185, 129, 0.5); margin: 20px 0; text-align: center; letter-spacing: -2px;}
+        .input-time, .ai-input, .tag-select { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 10px; border-radius: 10px; font-family: inherit; font-size: 0.95rem; outline: none; transition: 0.2s;}
+        .input-time:focus, .ai-input:focus, .tag-select:focus { border-color: var(--neon-blue); box-shadow: 0 0 10px rgba(56,189,248,0.3); background: rgba(0,0,0,0.6);}
+        .ai-input { width: 100%; box-sizing: border-box;}
+        
+        .quest-item { background: rgba(0,0,0,0.3); padding: 15px; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--gold); margin-bottom: 10px; font-size: 0.95rem;}
+        
+        .reward-screen { background: #000; min-height: 110px; display: flex; justify-content: center; align-items: center; margin: 20px 0; border: 2px solid #444; font-size: 1.3rem; font-weight: bold; color: var(--gold); border-radius: 16px; padding: 15px; text-align: center; box-shadow: inset 0 0 20px rgba(0,0,0,0.8);}
         .pity-bar-bg { background: rgba(0,0,0,0.5); height: 10px; border-radius: 5px; margin: 10px 0; overflow: hidden; }
-        .pity-bar-fill { height: 100%; background: var(--gold); width: 0%; transition: 0.3s; }
-        .slot-machine-text { animation: blurText 0.1s infinite alternate; color: #fff; filter: blur(2px); transform: scale(0.95); opacity: 0.8; }
-        @keyframes blurText { 0% { filter: blur(0px); transform: translateY(-2px); } 100% { filter: blur(2px); transform: translateY(2px); } }
-        .win-glow { animation: winPulse 1s infinite alternate; color: var(--gold) !important; text-shadow: 0 0 20px var(--gold) !important; border-color: var(--gold) !important;}
-        @keyframes winPulse { from { box-shadow: inset 0 0 20px rgba(251, 191, 36, 0.2); } to { box-shadow: inset 0 0 60px rgba(251, 191, 36, 0.6); } }
-
-        /* Settings Table */
-        .setting-row { display: flex; gap: 5px; margin-bottom: 5px; align-items: center;}
-        .setting-input { background: rgba(0,0,0,0.3); border: 1px solid #444; color: white; padding: 5px; border-radius: 5px; }
-
-        /* --- INVENTORY --- */
-        .inventory-list { max-height: 200px; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 10px; padding: 10px; }
-        .inv-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px dashed rgba(255,255,255,0.1); }
-        .inv-badge { background: var(--neon-purple); padding: 2px 8px; border-radius: 10px; font-weight: bold; font-size: 0.9rem;}
+        .pity-bar-fill { height: 100%; background: linear-gradient(90deg, #fbbf24, #f59e0b); width: 0%; transition: 0.3s; }
         
-        .confetti { position: fixed; top: -10px; width: 8px; height: 8px; z-index: 9999; animation: fall linear forwards; }
+        /* HIỆU ỨNG GACHA */
+        .slot-machine-text { animation: blurText 0.1s infinite alternate; color: #fff; filter: blur(1px); opacity: 0.8; }
+        @keyframes blurText { 0% { transform: translateY(-3px); } 100% { transform: translateY(3px); } }
+        .win-glow { animation: winPulse 1s infinite alternate; color: var(--gold) !important; text-shadow: 0 0 25px var(--gold) !important; border-color: var(--gold) !important; box-shadow: 0 0 20px rgba(251,191,36,0.3);}
+        @keyframes winPulse { from { box-shadow: inset 0 0 10px rgba(251, 191, 36, 0.2); } to { box-shadow: inset 0 0 40px rgba(251, 191, 36, 0.6); } }
+
+        /* BOSS & MODAL */
+        .boss-card { border: 2px solid var(--danger); background: linear-gradient(180deg, rgba(30, 41, 59, 0.8) 0%, rgba(153, 27, 27, 0.4) 100%); animation: bossShake 4s infinite; }
+        @keyframes bossShake { 0%, 100% { transform: translateX(0); } 5%, 15%, 25% { transform: translateX(-2px); } 10%, 20%, 30% { transform: translateX(2px); } 35% { transform: translateX(0); } }
+        .boss-hp { background: #000; height: 20px; border-radius: 10px; margin: 15px 0; border: 2px solid #333; overflow: hidden; position: relative;}
+        .boss-hp-fill { background: linear-gradient(90deg, #991b1b, #ef4444); height: 100%; width: 100%; transition: width 1s ease-out; }
+        
+        .ai-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(5px);}
+        .ai-modal-content { background: var(--card-bg); padding: 30px; border-radius: 24px; width: 90%; max-width: 500px; border: 1px solid var(--neon-blue); box-shadow: 0 0 50px rgba(56, 189, 248, 0.2); }
+        
+        .setting-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center;}
+        .inventory-list { max-height: 250px; overflow-y: auto; background: rgba(0,0,0,0.3); border-radius: 16px; padding: 15px; }
+        .inv-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px dashed rgba(255,255,255,0.1); }
+        .inv-badge { background: var(--neon-purple); padding: 3px 10px; border-radius: 12px; font-weight: bold; font-size: 0.85rem;}
+        
+        .confetti { position: fixed; top: -10px; width: 10px; height: 10px; z-index: 9999; animation: fall linear forwards; border-radius: 2px;}
         @keyframes fall { to { transform: translateY(110vh) rotate(720deg); } }
     </style>
 </head>
@@ -128,10 +153,11 @@
         </div>
     </div>
     
-    <div style="display: flex; gap: 10px; justify-content: center; margin-top: -15px; margin-bottom: 20px;">
+   <div style="display: flex; gap: 10px; justify-content: center; margin-top: -15px; margin-bottom: 20px; flex-wrap: wrap;">
         <button class="btn btn-small" style="background: #e11d48;" onclick="captureProfile()">📸 Chụp Profile Flex</button>
         <button class="btn btn-small btn-outline" onclick="exportJSON()">💾 Backup</button>
         <button class="btn btn-small btn-outline" onclick="document.getElementById('import-file').click()">📂 Import</button>
+        <button class="btn btn-small btn-danger" onclick="resetData()">⚠️ Reset Toàn Bộ</button>
         <input type="file" id="import-file" style="display: none;" accept=".json" onchange="importJSON(event)">
     </div>
 
@@ -290,21 +316,43 @@
     let radarChartInst = null;
     let barChartInst = null;
 
-    window.onload = function() { 
-        loadData(); checkNewDay(); checkBoss(); 
-        updateUI(); drawCharts(); renderSettings();
-    };
+// --- TÌM CÁI CỤC NÀY VÀ THAY THẾ NÓ ---
+  // --- ĐOẠN CODE KHỞI ĐỘNG MỚI (KHÔNG ĐỢI TẢI NHẠC) ---
+    document.addEventListener("DOMContentLoaded", function() { 
+        try {
+            loadData(); 
+            checkNewDay(); 
+            checkBoss(); 
+            updateUI(); 
+            renderSettings();
+            
+            // Vẽ biểu đồ ngay tắp lự sau 0.1 giây
+            setTimeout(() => { 
+                drawCharts(); 
+            }, 100);
 
+            // Bắn thêm 1 lệnh vẽ bồi sau 1 giây để đảm bảo layout 2 cột đã bung đều kích thước
+            setTimeout(() => { 
+                drawCharts(); 
+            }, 1000);
+
+        } catch (e) {
+            console.log("Lỗi khởi động hệ thống:", e);
+        }
+    });
+    // ----------------------------------------------------
     // --- 2. DATA MANAGEMENT ---
-    function loadData() { 
+ function loadData() { 
         let s = localStorage.getItem('dopaVUltimate'); let r = localStorage.getItem('dopaVUltimateRewards'); 
         if (s) {
             let parsed = JSON.parse(s);
             userData = {...userData, ...parsed}; 
-            // Đảm bảo có các object mới nếu nạp data cũ
-            if(!userData.skills) userData.skills = { "AI": 1 };
+            if(!userData.skills) userData.skills = { "AI Engineering": 1 };
             if(!userData.badges) userData.badges = [];
-            if(!userData.weeklyStats) userData.weeklyStats = { "Mon":0, "Tue":0, "Wed":0, "Thu":0, "Fri":0, "Sat":0, "Sun":0 };
+            // Bơm dữ liệu rỗng nếu mảng tuần bị thiếu
+            if(!userData.weeklyStats || Object.keys(userData.weeklyStats).length === 0) {
+                userData.weeklyStats = { "Mon":0, "Tue":0, "Wed":0, "Thu":0, "Fri":0, "Sat":0, "Sun":0 };
+            }
         }
         if(r) rewards = JSON.parse(r); 
     }
@@ -483,14 +531,29 @@
 
     function formatTime(sec) { let m = Math.floor(sec/60); let s = sec%60; return `${m<10?'0':''}${m}:${s<10?'0':''}${s}`; }
     
+   // Danh sách nhạc Lofi ngẫu nhiên
+    const lofiTracks = [
+        "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3", // Bài gốc
+        "https://cdn.pixabay.com/download/audio/2022/04/27/audio_65cb07b22a.mp3", // Chill study
+        "https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8b81db8f8.mp3", // Late night
+        "https://cdn.pixabay.com/download/audio/2022/01/21/audio_31743c58bc.mp3"  // Rain focus
+    ];
+
     function toggleLofi() {
         const audio = document.getElementById('lofi-audio');
         const btn = document.getElementById('btn-lofi');
-        if(isLofiPlaying) { audio.pause(); btn.innerText = "🎵 Bật Lofi"; } 
-        else { audio.play().catch(e => console.log("Trình duyệt chặn Autoplay")); btn.innerText = "🔇 Tắt Lofi"; }
+        if(isLofiPlaying) { 
+            audio.pause(); 
+            btn.innerText = "🎵 Bật Lofi"; 
+        } else { 
+            // Chọn ngẫu nhiên 1 bài
+            let randomTrack = lofiTracks[Math.floor(Math.random() * lofiTracks.length)];
+            audio.src = randomTrack;
+            audio.play().catch(e => console.log("Trình duyệt chặn Autoplay")); 
+            btn.innerText = "🔇 Tắt Lofi"; 
+        }
         isLofiPlaying = !isLofiPlaying;
-    }
-   let targetTime = 0;
+    }tTime = 0;
    function startTimer() {
         if (!timerInterval) {
             if (timeLeft === 0) { 
@@ -749,6 +812,13 @@
     
     function exportJSON() { const url = URL.createObjectURL(new Blob([JSON.stringify(userData)], { type: "application/json" })); const a = document.createElement('a'); a.href = url; a.download = `Dopa_Univ_Data.json`; a.click(); }
     function importJSON(e) { const fr = new FileReader(); fr.onload = function(ev) { try { userData = JSON.parse(ev.target.result); saveData(); alert("Nạp thành công!"); location.reload(); } catch(err){alert("File lỗi!");} }; fr.readAsText(e.target.files[0]); }
+    function resetData() {
+        if (confirm("⚠️ CẢNH BÁO: Sếp có chắc chắn muốn xóa trắng tu vi, quay về Level 1 không?")) {
+            localStorage.removeItem('dopaVUltimate');
+            localStorage.removeItem('dopaVUltimateRewards');
+            location.reload();
+        }
+    }
 </script>
 <div id="dev-panel" style="position: fixed; bottom: 20px; left: 20px; z-index: 9999;">
     <button onclick="toggleDevPanel()" style="background: #e11d48; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">🛠️</button>
