@@ -642,10 +642,12 @@
             const data = await response.json();
             return data.candidates[0].content.parts[0].text;
             
-        } catch (error) { 
-            alert("Lỗi kết nối AI!"); 
+  } catch (error) { 
+            // Ép hệ thống nhả ra nguyên nhân lỗi chi tiết
+            alert("Chi tiết lỗi: " + error.message); 
+            console.log("Lỗi đầy đủ:", error); // In ra F12 để sếp tự soi
             return null; 
-        } finally { 
+        } finally {
             if(btnElement) { btnElement.innerText = "⚡ Tạo Task Mới"; btnElement.disabled = false; } 
         }
     }
