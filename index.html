@@ -133,7 +133,21 @@
         
         .confetti { position: fixed; top: -10px; width: 10px; height: 10px; z-index: 9999; animation: fall linear forwards; border-radius: 2px;}
         @keyframes fall { to { transform: translateY(110vh) rotate(720deg); } }
+  .confetti { position: fixed; top: -10px; width: 10px; height: 10px; z-index: 9999; animation: fall linear forwards; border-radius: 2px;}
+        @keyframes fall { to { transform: translateY(110vh) rotate(720deg); } }
+
+        /* --- HIỆU ỨNG GACHA GENSHIN --- */
+        .gacha-meteor { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 99999; opacity: 0; display: flex; justify-content: center; align-items: center; mix-blend-mode: screen; }
+        .meteor-gold { background: radial-gradient(circle, #fbbf24 0%, transparent 60%); animation: flashMeteor 1.5s cubic-bezier(0.1, 0.9, 0.2, 1); }
+        .meteor-purple { background: radial-gradient(circle, #c084fc 0%, transparent 60%); animation: flashMeteor 1.5s cubic-bezier(0.1, 0.9, 0.2, 1); }
+        @keyframes flashMeteor { 0% { opacity: 1; transform: scale(0.1) translateY(-1000px); filter: brightness(4); } 30% { opacity: 1; transform: scale(2) translateY(0); filter: brightness(2); } 100% { opacity: 0; transform: scale(4); } }
+        
+        /* Hiệu ứng chữ 7 màu cho hàng SECRET */
+        .text-secret { background: linear-gradient(90deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3); -webkit-background-clip: text; color: transparent !important; text-shadow: 0 0 20px rgba(255,255,255,0.8); font-size: 1.6rem !important; animation: rainbowGlow 1s infinite linear; border-color: #fff !important; box-shadow: inset 0 0 50px rgba(255,255,255,0.5) !important;}
+        @keyframes rainbowGlow { 0% { filter: hue-rotate(0deg); } 100% { filter: hue-rotate(360deg); } }
+
     </style>
+  </style>
 </head>
 <body>
 <div id="login-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-dark); z-index: 99999; display: flex; flex-direction: column; justify-content: center; align-items: center;">
@@ -372,17 +386,21 @@
 let tempSpins = 0;    // Giỏ đựng vé thường tạm
     let tempVipSpins = 0; // Giỏ đựng vé VIP tạm
 
-    let rewards = {
+ let rewards = {
+        // 👑 BANNER VIP: 70% Tạch, Đồ xịn rớt ra là chấn động
         vip: [
-            { name: "SSR: Thẻ Đóng Băng Chuỗi (Cứu Streak)", probability: 10 },
-            { name: "SSR: Nghỉ tập Gym 1 hôm", probability: 20 },
-            { name: "SR: Ăn xả láng 1 bữa", probability: 20 },
-            { name: "SR: Chill 1 tiếng chìm đắm", probability: 50 }
+            { name: "💀 Tạch VIP! (Nghiệp quật, ráng cày thêm Vé đi)", probability: 70 },
+            { name: "SSR: Đi ăn 1 bữa Steak thượng hạng", probability: 10 },
+            { name: "SSR: Thẻ Cứu Streak (Giữ chuỗi thần thánh)", probability: 10 },
+            { name: "UR: Mua phụ kiện/đồ tập Gym xịn xò", probability: 9.9 },
+            { name: "✨ SECRET ✨: Mua máy quay DJI Osmo Pocket 2", probability: 0.1 }
         ],
+        // 🎫 BANNER THƯỜNG: 70% Tạch, farm vé mỏi tay
         normal: [
-            { name: "R: Lướt TopTop 20 phút", probability: 20 },
-            { name: "R: Làm 1 ly Đen Đá", probability: 30 },
-            { name: "N: Ăn trái cây", probability: 50 }
+            { name: "💀 Tạch! (Chúc sếp may mắn lần sau)", probability: 70 },
+            { name: "R: Giải trí 20 phút (Bee Swarm / Đọc truyện)", probability: 15 },
+            { name: "SR: Mua trái cây nhập khẩu (Bù vitamin)", probability: 10 },
+            { name: "SSR: Mua thực phẩm bổ sung (Whey/Creatine)", probability: 5 }
         ]
     };
 
@@ -960,25 +978,52 @@ const systemPrompt = `Time: "${time}". Goal: "${goal}". History: [${historyText}
                 }
 
                 if (isWin) {
+              // --- XỬ LÝ KẾT QUẢ GACHA SAU KHI DỪNG ---
+                if (isWin && !finalItem.includes("💀")) {
                     if (!finalItem.includes("BẢO HIỂM")) {
                         if(type === 'normal') userData.pityCount = 0;
                         userData.inventory[finalItem] = (userData.inventory[finalItem] || 0) + 1;
                     }
-                    resultBox.classList.add('win-glow');
-                    if(finalItem.includes("SSR") || type === 'vip') {
-                        fireConfetti(); screenFlash(); playSound('epic');
-                    } else { playSound('ting'); }
+                    
+                    // Tạo cục sao chổi
+                    let meteor = document.createElement('div');
+                    meteor.className = 'gacha-meteor';
+                    
+                    // Xóa class cũ
+                    resultBox.className = 'reward-screen win-glow'; 
+
+                    // Phân loại độ hiếm để nhá sáng (Genshin Effect)
+                    if (finalItem.includes("SECRET")) {
+                        meteor.classList.add('meteor-gold');
+                        resultBox.classList.add('text-secret'); // Bật chữ 7 màu
+                        fireConfetti(); fireConfetti(); // Bắn x2 pháo hoa
+                        playSound('epic');
+                    } else if (finalItem.includes("UR") || finalItem.includes("SSR") || finalItem.includes("BẢO HIỂM")) {
+                        meteor.classList.add('meteor-gold'); // Nhá Vàng
+                        fireConfetti();
+                        playSound('epic');
+                    } else if (finalItem.includes("SR")) {
+                        meteor.classList.add('meteor-purple'); // Nhá Tím
+                        playSound('ting');
+                    } else {
+                        playSound('ting'); // Đồ R thường không chớp sáng
+                    }
+                    
+                    document.body.appendChild(meteor);
+                    setTimeout(() => meteor.remove(), 1500);
+
                 } else {
-                    finalItem = ["💀 Tạch rùi!", "🤡 Nhân phẩm rớt mạng", "🗑️ Quay vào ô cày tiếp!"][Math.floor(Math.random()*3)];
+                    // Nếu tạch (Rơi vào 70%)
+                    if(finalItem.includes("💀") && type === 'normal') {
+                        finalItem = "💀 Tạch rùi! Cày tiếp đi sếp!";
+                    } else if (finalItem.includes("💀") && type === 'vip') {
+                        finalItem = "💀 Tạch Vé Vàng! Tiếc đứt ruột!";
+                    }
                 }
                 
                 resultBox.innerText = finalItem;
                 btnNorm.disabled = false; btnVip.disabled = false;
                 saveData(); updateUI();
-            }
-        }, 80);
-    }
-
     // Effects helpers
     function fireConfetti() {
         for(let i=0; i<40; i++) {
