@@ -9,6 +9,9 @@
     <title>DopaLearn V.Ultimate - Đột Phá Cảnh Giới</title>
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 
     <style>
@@ -154,6 +157,7 @@
     </div>
     
   <div style="display: flex; gap: 10px; justify-content: center; margin-top: -15px; margin-bottom: 20px; flex-wrap: wrap;">
+       <button id="login-btn" class="btn btn-small" style="background: white; color: #333; font-weight: bold;" onclick="loginGoogle()">☁️ Đăng nhập Google</button>
         <button class="btn btn-small" style="background: #3b82f6;" onclick="updateUI(); drawCharts();">🔄 Làm Mới Giao Diện</button>
         <button class="btn btn-small" style="background: #e11d48;" onclick="captureProfile()">📸 Chụp Profile Flex</button>
         <button class="btn btn-small btn-outline" onclick="exportJSON()">💾 Backup</button>
@@ -285,7 +289,50 @@
 </div>
 
 <script>
-    // --- 1. CORE DATA & INITIALIZATION ---
+   // --- KHỞI TẠO FIREBASE ĐÁM MÂY ---
+    const firebaseConfig = {
+      apiKey: "AIzaSyDRKVRG_dzMa5WD1GBNKKDoTMFiQj_Bm1s",
+      authDomain: "dopalearn-a9802.firebaseapp.com",
+      projectId: "dopalearn-a9802",
+      storageBucket: "dopalearn-a9802.firebasestorage.app",
+      messagingSenderId: "885075719561",
+      appId: "1:885075719561:web:215835e187bd8cbea3dd58",
+      measurementId: "G-YGG62RY3KR"
+    };
+
+    // Bật hệ thống
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const provider = new firebase.auth.GoogleAuthProvider();
+    let currentUser = null;
+
+    // HÀM ĐĂNG NHẬP
+    function loginGoogle() {
+        firebase.auth().signInWithPopup(provider).catch(err => alert("Lỗi đăng nhập: " + err.message));
+    }
+
+    // LẮNG NGHE TRẠNG THÁI (Đăng nhập thành công thì tải Tu vi về)
+    firebase.auth().onAuthStateChanged(async (user) => {
+        if (user) {
+            currentUser = user;
+            document.getElementById('login-btn').innerText = "👤 " + user.displayName;
+            
+            // Lên kho lấy dữ liệu
+            const doc = await db.collection("dopa_users").doc(user.uid).get();
+            if (doc.exists) {
+                let cloudData = doc.data();
+                userData = {...userData, ...cloudData.userData}; // Trộn tu vi mây vào máy
+                rewards = {...rewards, ...cloudData.rewards};
+                updateUI();
+                drawCharts();
+                console.log("☁️ Đồng bộ thành công!");
+            }
+        } else {
+            currentUser = null;
+            document.getElementById('login-btn').innerText = "☁️ Đăng nhập Google";
+        }
+    }); 
+// --- 1. CORE DATA & INITIALIZATION ---
     let userData = {
         totalTime: 0, streakDays: 0, lastStudyDate: null, 
         spinsAvailable: 0, vipSpins: 0, pityCount: 0, 
@@ -353,8 +400,19 @@
         }
         if(r) rewards = JSON.parse(r); 
     }
-    function saveData() { localStorage.setItem('dopaVUltimate', JSON.stringify(userData)); localStorage.setItem('dopaVUltimateRewards', JSON.stringify(rewards)); }
+   function saveData() { 
+        // 1. Vẫn lưu ngầm dưới máy như cũ
+        localStorage.setItem('dopaVUltimate', JSON.stringify(userData)); 
+        localStorage.setItem('dopaVUltimateRewards', JSON.stringify(rewards)); 
 
+        // 2. Bắn lên đám mây (Nếu đã đăng nhập)
+        if (currentUser) {
+            db.collection("dopa_users").doc(currentUser.uid).set({
+                userData: userData,
+                rewards: rewards
+            }).catch(e => console.log("Lỗi đẩy lên mây:", e));
+        }
+    }
     // --- 3. UI & CHARTS (RANKS, BADGES, SKILLS) ---
     function drawCharts() {
         // Radar Chart
