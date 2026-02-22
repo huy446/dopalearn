@@ -395,7 +395,7 @@ let tempSpins = 0;    // Giỏ đựng vé thường tạm
         try {
             loadData(); 
             checkNewDay(); 
-            checkBoss(); 
+            
             updateUI(); 
             renderSettings();
             
@@ -615,30 +615,49 @@ let tempSpins = 0;    // Giỏ đựng vé thường tạm
 
     function formatTime(sec) { let m = Math.floor(sec/60); let s = sec%60; return `${m<10?'0':''}${m}:${s<10?'0':''}${s}`; }
     
-   // Danh sách nhạc Lofi ngẫu nhiên
+ // 🎧 DANH SÁCH NHẠC LOFI (Nạp thêm bài mới)
     const lofiTracks = [
         "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3", // Bài gốc
         "https://cdn.pixabay.com/download/audio/2022/04/27/audio_65cb07b22a.mp3", // Chill study
         "https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8b81db8f8.mp3", // Late night
-        "https://cdn.pixabay.com/download/audio/2022/01/21/audio_31743c58bc.mp3"  // Rain focus
+        "https://cdn.pixabay.com/download/audio/2022/01/21/audio_31743c58bc.mp3", // Rain focus
+        "https://cdn.pixabay.com/download/audio/2021/11/26/audio_82132d73f4.mp3", // Aesthetic 
+        "https://cdn.pixabay.com/download/audio/2022/02/10/audio_fc86266d69.mp3"  // Coffee shop
     ];
+    let currentTrackIdx = Math.floor(Math.random() * lofiTracks.length); // Bật lên là random 1 bài
 
     function toggleLofi() {
         const audio = document.getElementById('lofi-audio');
         const btn = document.getElementById('btn-lofi');
+        
+        // Cực kỳ quan trọng: Tắt chế độ lặp lại 1 bài của HTML để nó còn nhảy bài
+        audio.loop = false; 
+
         if(isLofiPlaying) { 
             audio.pause(); 
             btn.innerText = "🎵 Bật Lofi"; 
         } else { 
-            // Chọn ngẫu nhiên 1 bài
-            let randomTrack = lofiTracks[Math.floor(Math.random() * lofiTracks.length)];
-            audio.src = randomTrack;
+            // Nếu là lần đầu tiên bấm (chưa có nhạc) thì nạp bài hát vào
+            if (audio.src === window.location.href || audio.src.includes("1808fbf07a")) {
+                 audio.src = lofiTracks[currentTrackIdx];
+            }
             audio.play().catch(e => console.log("Trình duyệt chặn Autoplay")); 
             btn.innerText = "🔇 Tắt Lofi"; 
         }
-      isLofiPlaying = !isLofiPlaying;
+        isLofiPlaying = !isLofiPlaying;
     }
 
+    // 🔄 TỰ ĐỘNG CHUYỂN BÀI KHI HẾT NHẠC (NHƯ SPOTIFY)
+    document.addEventListener("DOMContentLoaded", function() {
+        document.getElementById('lofi-audio').addEventListener('ended', function() {
+            currentTrackIdx++; // Tăng số thứ tự bài lên
+            if (currentTrackIdx >= lofiTracks.length) currentTrackIdx = 0; // Hết list thì quay lại bài 1
+            
+            this.src = lofiTracks[currentTrackIdx];
+            this.play();
+            console.log("🎵 Đang chuyển sang bài: " + currentTrackIdx);
+        });
+    });
     let targetTime = 0;
 let lastCheckedMinute = 0; // Biến để nhớ xem phút nào đã đổ xí ngầu rồi
 
@@ -673,7 +692,8 @@ let lastCheckedMinute = 0; // Biến để nhớ xem phút nào đã đổ xí n
             updateUI();
         }
     });
-
+let pauseInterval = null;
+let pauseSeconds = 0;
   function startTimer() {
        clearInterval(pauseInterval);
  if (!timerInterval) {
@@ -847,59 +867,44 @@ const systemPrompt = `Time: "${time}". Goal: "${goal}". History: [${historyText}
     }
 
     async function summonAIBoss() {
- // 1. TÍNH TOÁN XEM HÔM NAY LÀ TUẦN THỨ MẤY 
-    // (Lấy tổng số mili-giây từ năm 1970 chia cho số mili-giây của 1 tuần)
-    let currentWeekId = Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000)); 
-
-    // 2. KIỂM TRA ĐÃ SANG TUẦN MỚI CHƯA
-    if (userData.bossWeekId !== currentWeekId) {
-        userData.bossWeekId = currentWeekId; // Cập nhật ID tuần mới
-        userData.bossKillsThisWeek = 0;      // Sang tuần mới -> Reset số lượt giết Boss về 0
-        saveData(); 
-    }
-
-    // 3. ĐIỀU KIỆN ĐỂ BOSS XUẤT HIỆN
-    // Giả sử sếp đang có đoạn random: let tiLe = Math.random() * 100;
-    // Nếu sếp muốn tỉ lệ ra Boss là 10%, VÀ sếp kiểm tra xem tuần này đã giết đủ 2 con chưa
-    
- // 3. ĐIỀU KIỆN ĐỂ BOSS XUẤT HIỆN
-    let tiLe = Math.random() * 100; // <--- SẾP PHẢI THÊM DÒNG NÀY VÀO MỚI CÓ SỐ ĐỂ SO SÁNH
-    
-    if (tiLe <= 10 && userData.bossKillsThisWeek < 2) {
-        // ---- DÁN CODE HIỆN GIAO DIỆN BOSS CỦA SẾP VÀO ĐÂY ----
-        // Ví dụ: document.getElementById('boss-modal').style.display = 'block';
-        
-    } else if (tiLe <= 10 && userData.bossKillsThisWeek >= 2) {
-        // Rơi vào 10% ra Boss, NHƯNG đã hết quota (chỉ tiêu) tuần này
-        console.log("Boss đang đi nghỉ mát, không tiếp khách!");
-        
-        // ---- DÁN CODE HIỆN TASK/NHIỆM VỤ BÌNH THƯỜNG VÀO ĐÂY ----
-        
-    } else {
-        // Tỉ lệ > 10%, không quay trúng Boss
-        // ---- DÁN CODE HIỆN TASK BÌNH THƯỜNG VÀO ĐÂY ----
-    }
-
-       // Tìm môn yếu nhất
-        let weakestSkill = Object.keys(userData.skills).reduce((a, b) => userData.skills[a] < userData.skills[b] ? a : b);
-        let prompt = `Tạo một cái tên Ngầu (max 5 chữ) và 1 câu mô tả (max 15 chữ) cho một con Quái Vật đại diện cho sự yếu kém trong môn học "${weakestSkill}". Trả về JSON: {"name": "Tên Boss", "desc": "Mô tả"}`;
-        
-        // Gọi AI ngầm (không cần modal)
-        let result = await callGemini(prompt, null, "");
-        if(result) {
-            try {
-                let bossData = JSON.parse(result.replace(/```json/g, "").replace(/```/g, "").trim());
-                document.getElementById('boss-name').innerText = "👹 BOSS: " + bossData.name;
-                document.getElementById('boss-desc').innerText = bossData.desc;
-            } catch(e) {} // Fallback to default if parse fails
-        } else {
-            document.getElementById('boss-name').innerText = "👹 ÁC MỘNG " + weakestSkill.toUpperCase();
-            document.getElementById('boss-desc').innerText = "Vượt qua giới hạn của chính mình!";
+        // 1. Kiểm tra sang tuần mới chưa
+        let currentWeekId = Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000)); 
+        if (userData.bossWeekId !== currentWeekId) {
+            userData.bossWeekId = currentWeekId; 
+            userData.bossKillsThisWeek = 0;      
+            saveData(); 
         }
-        document.getElementById('boss-section').style.display = 'block';
-        playSound('epic'); // Play boss sound
-    }
 
+        // 2. Tỉ lệ xuất hiện
+        let tiLe = Math.random() * 100; 
+        
+        // 3. Nếu rơi vào 10% VÀ chưa giết đủ 2 con Boss tuần này
+        if (tiLe <= 10 && userData.bossKillsThisWeek < 2) {
+            
+            // BẮT ĐẦU GỌI BOSS AI
+            let weakestSkill = Object.keys(userData.skills).reduce((a, b) => userData.skills[a] < userData.skills[b] ? a : b);
+            let prompt = `Tạo một cái tên Ngầu (max 5 chữ) và 1 câu mô tả (max 15 chữ) cho một con Quái Vật đại diện cho sự yếu kém trong môn học "${weakestSkill}". Trả về JSON: {"name": "Tên Boss", "desc": "Mô tả"}`;
+            
+            let result = await callGemini(prompt, null, "");
+            if(result) {
+                try {
+                    let bossData = JSON.parse(result.replace(/```json/g, "").replace(/```/g, "").trim());
+                    document.getElementById('boss-name').innerText = "👹 BOSS: " + bossData.name;
+                    document.getElementById('boss-desc').innerText = bossData.desc;
+                } catch(e) {} 
+            } else {
+                document.getElementById('boss-name').innerText = "👹 ÁC MỘNG " + weakestSkill.toUpperCase();
+                document.getElementById('boss-desc').innerText = "Vượt qua giới hạn của chính mình!";
+            }
+            document.getElementById('boss-section').style.display = 'block';
+            playSound('epic'); 
+            
+        } else if (tiLe <= 10 && userData.bossKillsThisWeek >= 2) {
+            alert("Tuần này chém Boss mỏi tay rồi (2/2), Boss đi nghỉ mát, không xuất hiện nữa!");
+        } else {
+            alert("Trời yên biển lặng. Không có Boss nào xuất hiện!");
+        }
+    }
   function killBoss() {
         userData.bossDefeatedToday = true; 
         document.getElementById('boss-hp-fill').style.width = '0%';
@@ -1023,11 +1028,25 @@ const systemPrompt = `Time: "${time}". Goal: "${goal}". History: [${historyText}
     
     function exportJSON() { const url = URL.createObjectURL(new Blob([JSON.stringify(userData)], { type: "application/json" })); const a = document.createElement('a'); a.href = url; a.download = `Dopa_Univ_Data.json`; a.click(); }
     function importJSON(e) { const fr = new FileReader(); fr.onload = function(ev) { try { userData = JSON.parse(ev.target.result); saveData(); alert("Nạp thành công!"); location.reload(); } catch(err){alert("File lỗi!");} }; fr.readAsText(e.target.files[0]); }
-    function resetData() {
-        if (confirm("⚠️ CẢNH BÁO: Sếp có chắc chắn muốn xóa trắng tu vi, quay về Level 1 không?")) {
+   async function resetData() {
+        if (confirm("⚠️ CẢNH BÁO TỐI CAO: Thao tác này sẽ XÓA SẠCH toàn bộ Level, Vé Gacha, Vật phẩm, và Điểm Tín Dụng trên cả máy tính lẫn Đám Mây. Bạn có chắc chắn 100% không?")) {
+            
+            // 1. Xóa sạch ở dưới máy tính/điện thoại
             localStorage.removeItem('dopaVUltimate');
             localStorage.removeItem('dopaVUltimateRewards');
-            location.reload();
+            
+            // 2. Bắn tên lửa lên mây để xóa kho lưu trữ (Nếu đang đăng nhập)
+            if (currentUser) {
+                try {
+                    await db.collection("dopa_users").doc(currentUser.uid).delete();
+                    console.log("☁️ Đã thiêu rụi kho dữ liệu trên đám mây!");
+                } catch(e) { 
+                    console.log("Lỗi xóa mây:", e); 
+                }
+            }
+            
+            alert("Đã reset thành công! Trở lại thành Tân Binh.");
+            location.reload(); // Tải lại trang
         }
     }
 </script>
