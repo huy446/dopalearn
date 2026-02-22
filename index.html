@@ -366,7 +366,11 @@
         skills: { "AI Engineering": 1, "IELTS": 1, "Toán Rời Rạc": 1, "Gym": 1 },
         badges: [], // Lưu các huy hiệu
         weeklyStats: { "Mon":0, "Tue":0, "Wed":0, "Thu":0, "Fri":0, "Sat":0, "Sun":0 } // Analytics
+bossWeekId: 0,           // Lưu ID của tuần hiện tại
+    bossKillsThisWeek: 0,
     };
+let tempSpins = 0;    // Giỏ đựng vé thường tạm
+    let tempVipSpins = 0; // Giỏ đựng vé VIP tạm
 
     let rewards = {
         vip: [
@@ -643,18 +647,14 @@ let lastCheckedMinute = 0; // Biến để nhớ xem phút nào đã đổ xí n
         let rand = Math.random() * 100; // Quay số từ 0 đến 100
         let dropLog = document.getElementById('drop-log');
 
-        if (rand <= 1) { 
-            // 1% Trúng Vé VIP VÀNG
-            userData.vipSpins++;
-            dropLog.innerHTML = "✨ PHÚC LỢI RƠI XUỐNG: Trời độ, rớt 1 Vé VIP Vàng! ✨";
-            playSound('epic'); // Nhạc hoành tráng
-            saveData(); updateUI();
+     if (rand <= 1) { 
+            tempVipSpins++; // Cho vào giỏ tạm
+            dropLog.innerHTML = "✨ Rớt 1 Vé VIP (Đang giữ trong giỏ tạm, ráng học xong mới được nhận) ✨";
+            playSound('epic'); 
         } else if (rand <= 11) { 
-            // 10% Trúng Vé Thường (từ 1.01 đến 11)
-            userData.spinsAvailable++;
-            dropLog.innerHTML = "🎁 May mắn: Đang học nhặt được 1 Vé Thường!";
-            playSound('ting'); // Tiếng ting ting
-            saveData(); updateUI();
+            tempSpins++; // Cho vào giỏ tạm
+            dropLog.innerHTML = "🎁 Rớt 1 Vé Thường (Đang giữ trong giỏ tạm)";
+            playSound('ting'); 
         }
 
         // Tự động xóa dòng thông báo sau 5 giây
@@ -662,8 +662,21 @@ let lastCheckedMinute = 0; // Biến để nhớ xem phút nào đã đổ xí n
             setTimeout(() => { dropLog.innerHTML = ""; }, 5000);
         }
     }
-    function startTimer() {
-        if (!timerInterval) {
+  
+// 🚨 HỆ THỐNG GIÁM SÁT TAB TRÌNH DUYỆT
+    document.addEventListener("visibilitychange", () => {
+        // Nếu đồng hồ đang chạy (timerInterval != null) mà sếp lại thu nhỏ web hoặc qua tab khác
+        if (document.visibilityState === 'hidden' && typeof timerInterval !== 'undefined' && timerInterval !== null) {
+            alert("🚨 CẢNH BÁO TỪ TRẠM GIÁM SÁT: Bạn vừa thoát màn hình lúc đang học! Trừ 10 Điểm Tín Dụng!");
+            userData.creditScore -= 10;
+            saveData(); 
+            updateUI();
+        }
+    });
+
+  function startTimer() {
+       clearInterval(pauseInterval);
+ if (!timerInterval) {
             if (timeLeft === 0) { 
                 initialMins = parseInt(document.getElementById('pomo-input').value) || 25; 
                 timeLeft = initialMins * 60; 
@@ -703,8 +716,22 @@ let lastCheckedMinute = 0; // Biến để nhớ xem phút nào đã đổ xí n
         }
     }
     function pauseTimer() { clearInterval(timerInterval); timerInterval = null; document.getElementById('btn-start').style.display = 'inline-block'; document.getElementById('btn-pause').style.display = 'none'; document.getElementById('btn-start').innerText = "▶ TIẾP TỤC"; }
+pauseSeconds = 0;
+        pauseInterval = setInterval(() => {
+            pauseSeconds++;
+            if (pauseSeconds > 180) { // Nếu Pause quá 3 phút (180 giây)
+                clearInterval(pauseInterval);
+                alert("💀 BẠN ĐÃ TẠM DỪNG QUÁ 3 PHÚT! Trạng thái tập trung sâu đã bị phá vỡ. Hủy phiên học và Trừ 20 Điểm.");
+                userData.creditScore -= 20;
+                resetTimer(); // Ép reset lại từ đầu
+                saveData(); updateUI();
+            }
+        }, 1000);
+    }
     function resetTimer() { 
-        pauseTimer(); 
+       
+tempSpins = 0; tempVipSpins = 0; // Bấm hủy là vứt hết đồ nhặt được
+ pauseTimer(); 
         timeLeft = 0; 
         lastCheckedMinute = 0; // Reset lại phút rớt đồ
         document.getElementById('pomo-progress-fill').style.width = "0%"; // Thụt thanh tiến trình về 0
@@ -744,7 +771,10 @@ let lastCheckedMinute = 0; // Biến để nhớ xem phút nào đã đổ xí n
         let earnedSpins = Math.floor(minsLeft / (userData.streakDays >= 7 ? 30 : 50));
         let msg = `✅ Hoàn thành ${initialMins} phút!\n`;
         if (initialMins >= 90) { userData.vipSpins += 1; msg += `🌟 Đột phá: Nhận 1 Vé VIP!\n`; }
-        userData.spinsAvailable += earnedSpins; saveData(); updateUI();
+      userData.spinsAvailable += tempSpins; // Đổ vé thường vào túi
+        userData.vipSpins += tempVipSpins;    // Đổ vé VIP vào túi
+        if (tempSpins > 0 || tempVipSpins > 0) msg += `\n🎒 Đã thu thập vé nhặt được dọc đường!`;
+        tempSpins = 0; tempVipSpins = 0;saveData(); updateUI();
         if (debtPaid > 0) msg += `🏦 Đã trừ ${debtPaid * 45} phút để trả nợ.\n`;
         if (earnedSpins > 0) msg += `🎁 Nhận thêm: ${earnedSpins} Vé Thường.`;
         alert(msg);
@@ -788,7 +818,8 @@ let lastCheckedMinute = 0; // Biến để nhớ xem phút nào đã đổ xí n
         if(!goal) return alert("Sếp nhập mục tiêu vào đã!");
 
         const historyText = userData.history.length > 0 ? userData.history.join(" | ") : "Chưa có";
-        const systemPrompt = `Time: "${time}". Goal: "${goal}". History: [${historyText}]. Generate EXACTLY 3 JSON tasks continuing learning: [{"desc": "Làm A...", "reward": 2}]. JSON ONLY.`;
+       // Dòng lệnh thép ép AI nhả ít task và ít vé
+const systemPrompt = `Time: "${time}". Goal: "${goal}". History: [${historyText}]. Generate EXACTLY 1 or 2 high-quality, specific tasks to continue learning. Format EXACTLY as JSON array: [{"desc": "Làm A...", "reward": 1}]. DO NOT give rewards higher than 1. JSON ONLY.`;
         
         let result = await callGemini(systemPrompt, btn, "⏳ Đang lật nhật ký...");
         if(result) {
@@ -810,7 +841,38 @@ let lastCheckedMinute = 0; // Biến để nhớ xem phút nào đã đổ xí n
     }
 
     async function summonAIBoss() {
-        // Tìm môn yếu nhất
+ // 1. TÍNH TOÁN XEM HÔM NAY LÀ TUẦN THỨ MẤY 
+    // (Lấy tổng số mili-giây từ năm 1970 chia cho số mili-giây của 1 tuần)
+    let currentWeekId = Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000)); 
+
+    // 2. KIỂM TRA ĐÃ SANG TUẦN MỚI CHƯA
+    if (userData.bossWeekId !== currentWeekId) {
+        userData.bossWeekId = currentWeekId; // Cập nhật ID tuần mới
+        userData.bossKillsThisWeek = 0;      // Sang tuần mới -> Reset số lượt giết Boss về 0
+        saveData(); 
+    }
+
+    // 3. ĐIỀU KIỆN ĐỂ BOSS XUẤT HIỆN
+    // Giả sử sếp đang có đoạn random: let tiLe = Math.random() * 100;
+    // Nếu sếp muốn tỉ lệ ra Boss là 10%, VÀ sếp kiểm tra xem tuần này đã giết đủ 2 con chưa
+    
+    if (tiLe <= 10 && userData.bossKillsThisWeek < 2) {
+        
+        // ---- DÁN CODE HIỆN GIAO DIỆN BOSS CỦA SẾP VÀO ĐÂY ----
+        // Ví dụ: document.getElementById('boss-modal').style.display = 'block';
+        
+    } else if (tiLe <= 10 && userData.bossKillsThisWeek >= 2) {
+        // Rơi vào 10% ra Boss, NHƯNG đã hết quota (chỉ tiêu) tuần này
+        console.log("Boss đang đi nghỉ mát, không tiếp khách!");
+        
+        // ---- DÁN CODE HIỆN TASK/NHIỆM VỤ BÌNH THƯỜNG VÀO ĐÂY ----
+        
+    } else {
+        // Tỉ lệ > 10%, không quay trúng Boss
+        // ---- DÁN CODE HIỆN TASK BÌNH THƯỜNG VÀO ĐÂY ----
+    }
+
+       // Tìm môn yếu nhất
         let weakestSkill = Object.keys(userData.skills).reduce((a, b) => userData.skills[a] < userData.skills[b] ? a : b);
         let prompt = `Tạo một cái tên Ngầu (max 5 chữ) và 1 câu mô tả (max 15 chữ) cho một con Quái Vật đại diện cho sự yếu kém trong môn học "${weakestSkill}". Trả về JSON: {"name": "Tên Boss", "desc": "Mô tả"}`;
         
@@ -834,12 +896,16 @@ let lastCheckedMinute = 0; // Biến để nhớ xem phút nào đã đổ xí n
         userData.bossDefeatedToday = true; document.getElementById('boss-hp-fill').style.width = '0%';
         setTimeout(() => {
             document.getElementById('boss-section').style.display = 'none'; 
-            userData.spinsAvailable += 5; userData.vipSpins += 3;
-            saveData(); updateUI(); alert("💥 BOSS BỊ TIÊU DIỆT.\nNhận: 5 Vé Thường + 3 VÉ VIP VÀNG!");
-            document.getElementById('boss-hp-fill').style.width = '100%'; // reset HP bar
-        }, 1000);
-    }
-
+           userData.spinsAvailable += 2; userData.vipSpins += 1;
+     userData.bossKillsThisWeek++; 
+    
+    // Ẩn giao diện Boss đi
+    // document.getElementById('boss-modal').style.display = 'none';
+    
+    saveData(); // Lưu ngay vào máy (và đẩy lên đám mây nếu có)
+    updateUI();
+    alert("🎉 Tiêu diệt Boss thành công! Quota Boss tuần này: " + userData.bossKillsThisWeek + "/2");
+}
     function completeQuest(idx) {
         if (!userData.quests[idx].done) {
             userData.quests[idx].done = true; userData.spinsAvailable += userData.quests[idx].reward;
