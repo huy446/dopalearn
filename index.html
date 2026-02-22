@@ -209,6 +209,16 @@
         </div>
         
         <div class="clock-display" id="clock-display">25:00</div>
+<div style="position: relative; width: 100%; height: 12px; background: rgba(0,0,0,0.6); border-radius: 6px; margin: 25px 0 35px 0; border: 1px solid #333;">
+            <div id="pomo-progress-fill" style="width: 0%; height: 100%; background: linear-gradient(90deg, #10b981, #38bdf8, #c084fc); border-radius: 6px; transition: width 1s linear;"></div>
+            
+            <div style="position: absolute; left: 20.8%; top: -5px; bottom: -5px; width: 2px; background: #94a3b8;"></div> <div style="position: absolute; left: 41.6%; top: -5px; bottom: -5px; width: 2px; background: #38bdf8;"></div> <div style="position: absolute; left: 75%; top: -5px; bottom: -5px; width: 2px; background: #c084fc;"></div> <span style="position: absolute; left: 20.8%; top: 15px; font-size: 0.65rem; color: #94a3b8; transform: translateX(-50%);">25p (Khởi động)</span>
+            <span style="position: absolute; left: 41.6%; top: 15px; font-size: 0.65rem; color: #38bdf8; transform: translateX(-50%);">50p (1🎫)</span>
+            <span style="position: absolute; left: 75%; top: 15px; font-size: 0.65rem; color: #c084fc; transform: translateX(-50%);">90p (2🎫)</span>
+            <span style="position: absolute; right: 0; top: 15px; font-size: 0.65rem; color: var(--gold);">120p (👑)</span>
+        </div>
+
+        <div id="drop-log" style="font-size: 0.85rem; color: var(--gold); text-align: center; min-height: 20px; font-weight: bold; margin-bottom: 10px; text-shadow: 0 0 10px rgba(251,191,36,0.5);"></div>
         
         <div style="text-align: center; margin-bottom: 15px; display: flex; justify-content: center; align-items: center; gap: 5px; flex-wrap: wrap;">
             Thời gian: <input type="number" id="pomo-input" class="input-time" value="25" min="1"> p
@@ -626,7 +636,32 @@
     }
 
     let targetTime = 0;
+let lastCheckedMinute = 0; // Biến để nhớ xem phút nào đã đổ xí ngầu rồi
 
+    // HÀM ĐỔ XÍ NGẦU RỚT ĐỒ NGẪU NHIÊN
+    function rollRandomDrop() {
+        let rand = Math.random() * 100; // Quay số từ 0 đến 100
+        let dropLog = document.getElementById('drop-log');
+
+        if (rand <= 1) { 
+            // 1% Trúng Vé VIP VÀNG
+            userData.vipSpins++;
+            dropLog.innerHTML = "✨ PHÚC LỢI RƠI XUỐNG: Trời độ, rớt 1 Vé VIP Vàng! ✨";
+            playSound('epic'); // Nhạc hoành tráng
+            saveData(); updateUI();
+        } else if (rand <= 11) { 
+            // 10% Trúng Vé Thường (từ 1.01 đến 11)
+            userData.spinsAvailable++;
+            dropLog.innerHTML = "🎁 May mắn: Đang học nhặt được 1 Vé Thường!";
+            playSound('ting'); // Tiếng ting ting
+            saveData(); updateUI();
+        }
+
+        // Tự động xóa dòng thông báo sau 5 giây
+        if (rand <= 11) {
+            setTimeout(() => { dropLog.innerHTML = ""; }, 5000);
+        }
+    }
     function startTimer() {
         if (!timerInterval) {
             if (timeLeft === 0) { 
@@ -643,7 +678,20 @@
             timerInterval = setInterval(() => { 
                 // Mỗi giây, lấy thời điểm kết thúc trừ đi thời gian hiện tại
                 timeLeft = Math.round((targetTime - Date.now()) / 1000);
+                // --- ĐOẠN CODE MỚI THÊM VÀO ĐÂY ---
+                let elapsedSec = (initialMins * 60) - timeLeft; // Tính số giây đã trôi qua
+                let elapsedMins = Math.floor(elapsedSec / 60);  // Tính số phút đã trôi qua
                 
+                // 1. Chạy Thanh Tiến Trình Mốc (Max 120 phút)
+                let progressPercent = (elapsedSec / (120 * 60)) * 100;
+                if (progressPercent > 100) progressPercent = 100; // Đụng nóc 120p thì dừng
+                document.getElementById('pomo-progress-fill').style.width = progressPercent + "%";
+
+                // 2. Cơ chế Rớt Đồ: Cứ mỗi khi nhảy sang 1 phút MỚI thì đổ xí ngầu 1 lần
+                if (elapsedMins > lastCheckedMinute && elapsedMins > 0) {
+                    lastCheckedMinute = elapsedMins; // Cập nhật phút hiện tại
+                    rollRandomDrop(); // Đổ xí ngầu!
+                }
                 if (timeLeft <= 0) {
                     timeLeft = 0;
                     document.getElementById('clock-display').innerText = "00:00";
@@ -655,8 +703,16 @@
         }
     }
     function pauseTimer() { clearInterval(timerInterval); timerInterval = null; document.getElementById('btn-start').style.display = 'inline-block'; document.getElementById('btn-pause').style.display = 'none'; document.getElementById('btn-start').innerText = "▶ TIẾP TỤC"; }
-    function resetTimer() { pauseTimer(); timeLeft = 0; document.getElementById('clock-display').innerText = formatTime(parseInt(document.getElementById('pomo-input').value)*60); document.getElementById('btn-start').innerText = "▶ BẮT ĐẦU"; }
-
+    function resetTimer() { 
+        pauseTimer(); 
+        timeLeft = 0; 
+        lastCheckedMinute = 0; // Reset lại phút rớt đồ
+        document.getElementById('pomo-progress-fill').style.width = "0%"; // Thụt thanh tiến trình về 0
+        document.getElementById('drop-log').innerHTML = ""; // Xóa thông báo rớt đồ
+        
+        document.getElementById('clock-display').innerText = formatTime(parseInt(document.getElementById('pomo-input').value)*60); 
+        document.getElementById('btn-start').innerText = "▶ BẮT ĐẦU"; 
+    }
     function completePomodoro() {
         pauseTimer(); resetTimer(); playSound('ting');
         
