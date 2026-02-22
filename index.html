@@ -365,8 +365,8 @@
         creditScore: 600, debtSpins: 0, bossDefeatedToday: false,
         skills: { "AI Engineering": 1, "IELTS": 1, "Toán Rời Rạc": 1, "Gym": 1 },
         badges: [], // Lưu các huy hiệu
-        weeklyStats: { "Mon":0, "Tue":0, "Wed":0, "Thu":0, "Fri":0, "Sat":0, "Sun":0 } // Analytics
-bossWeekId: 0,           // Lưu ID của tuần hiện tại
+       weeklyStats: { "Mon":0, "Tue":0, "Wed":0, "Thu":0, "Fri":0, "Sat":0, "Sun":0 }, // <--- THÊM DẤU PHẨY VÀO ĐÂY NHÉ
+        bossWeekId: 0,          // Lưu ID của tuần hiện tại
     bossKillsThisWeek: 0,
     };
 let tempSpins = 0;    // Giỏ đựng vé thường tạm
@@ -715,8 +715,14 @@ let lastCheckedMinute = 0; // Biến để nhớ xem phút nào đã đổ xí n
             }, 1000);
         }
     }
-    function pauseTimer() { clearInterval(timerInterval); timerInterval = null; document.getElementById('btn-start').style.display = 'inline-block'; document.getElementById('btn-pause').style.display = 'none'; document.getElementById('btn-start').innerText = "▶ TIẾP TỤC"; }
-pauseSeconds = 0;
+   function pauseTimer() { 
+        clearInterval(timerInterval); 
+        timerInterval = null; 
+        document.getElementById('btn-start').style.display = 'inline-block'; 
+        document.getElementById('btn-pause').style.display = 'none'; 
+        document.getElementById('btn-start').innerText = "▶ TIẾP TỤC"; 
+        
+        pauseSeconds = 0;
         pauseInterval = setInterval(() => {
             pauseSeconds++;
             if (pauseSeconds > 180) { // Nếu Pause quá 3 phút (180 giây)
@@ -856,8 +862,10 @@ const systemPrompt = `Time: "${time}". Goal: "${goal}". History: [${historyText}
     // Giả sử sếp đang có đoạn random: let tiLe = Math.random() * 100;
     // Nếu sếp muốn tỉ lệ ra Boss là 10%, VÀ sếp kiểm tra xem tuần này đã giết đủ 2 con chưa
     
+ // 3. ĐIỀU KIỆN ĐỂ BOSS XUẤT HIỆN
+    let tiLe = Math.random() * 100; // <--- SẾP PHẢI THÊM DÒNG NÀY VÀO MỚI CÓ SỐ ĐỂ SO SÁNH
+    
     if (tiLe <= 10 && userData.bossKillsThisWeek < 2) {
-        
         // ---- DÁN CODE HIỆN GIAO DIỆN BOSS CỦA SẾP VÀO ĐÂY ----
         // Ví dụ: document.getElementById('boss-modal').style.display = 'block';
         
@@ -892,20 +900,19 @@ const systemPrompt = `Time: "${time}". Goal: "${goal}". History: [${historyText}
         playSound('epic'); // Play boss sound
     }
 
-    function killBoss() {
-        userData.bossDefeatedToday = true; document.getElementById('boss-hp-fill').style.width = '0%';
+  function killBoss() {
+        userData.bossDefeatedToday = true; 
+        document.getElementById('boss-hp-fill').style.width = '0%';
+        
         setTimeout(() => {
             document.getElementById('boss-section').style.display = 'none'; 
-           userData.spinsAvailable += 2; userData.vipSpins += 1;
-     userData.bossKillsThisWeek++; 
-    
-    // Ẩn giao diện Boss đi
-    // document.getElementById('boss-modal').style.display = 'none';
-    
-    saveData(); // Lưu ngay vào máy (và đẩy lên đám mây nếu có)
-    updateUI();
-    alert("🎉 Tiêu diệt Boss thành công! Quota Boss tuần này: " + userData.bossKillsThisWeek + "/2");
-}
+            userData.spinsAvailable += 2; userData.vipSpins += 1;
+            userData.bossKillsThisWeek++; 
+            
+            saveData(); updateUI();
+            alert("🎉 Tiêu diệt Boss thành công! Quota Boss tuần này: " + userData.bossKillsThisWeek + "/2");
+        }, 1000); // <--- BẢN CŨ CỦA SẾP BỊ MẤT CÁI DÒNG ĐÓNG NGOẶC NÀY
+    }
     function completeQuest(idx) {
         if (!userData.quests[idx].done) {
             userData.quests[idx].done = true; userData.spinsAvailable += userData.quests[idx].reward;
